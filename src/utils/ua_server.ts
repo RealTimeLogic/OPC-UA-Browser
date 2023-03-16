@@ -214,11 +214,6 @@ class UAServer {
   }
 
   activateSession(policyId: string, identity: string | undefined = undefined, secret: string | undefined = undefined) {
-    if (secret == undefined) {
-      secret = identity
-      identity = undefined
-    }
-
     const request = {
       activateSession: {
         policyId: policyId,

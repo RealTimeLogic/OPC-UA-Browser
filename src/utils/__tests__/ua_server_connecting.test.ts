@@ -266,37 +266,6 @@ describe("Authentication", async () => {
       expect(certificatePolicyId).not.toEqual("")
 
       // Certificate and private key of user 'admin'
-      const userKey = `
-        -----BEGIN PRIVATE KEY-----
-        MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCoa4EvEHPNZq3v
-        ZHktcVcjiXGMgkvJxKHLg1MAzNJJq0CidXwx9yDckAdnQUaBHnmUJmzvzgwGkxU5
-        bHU/HKQbcOrNcS+WV88Y0gNvVk1J8wnlalCVVqCl3Wroq4c47X7CBl5YceKolUfX
-        UmvgcX0puObBW3jKQN2iKO+B5NsbxQJYeYWpftpDngEAl7sdSr7CoraejZfX+9VC 
-        6qGshuh+mZyxWmGh0vWOYNM0bmzN5UW2hMbIdGJaotIwHiZU8FXXLiyJS4vXtLpF
-        MH8D1cb0cswidDSmPWCstnVpgHuSiGSXahpfP7TM/XJ+QaUFhPQfASoB6vdT9dHn
-        qysB9RYBAgMBAAECggEAXJi+reGdyZBqkPPsq89k2WT3yQjaIlS5n+rT99ykwVwm
-        bSuq3M3Cg4GskFiTKupWbd2yhyYB9ptnT+sRi2Fz2KJ8dfeE8mPUuRC+UrhgRggZ
-        qMiLBZBbQtY5sTKdZe8tgf9+X6I9u/JXTUtDhGLhLc87D5P7FTgUotNe20u4K8uA
-        mRRfStT4Fq7O4GaoJQb/2Tvbi4B2tKZwDE6+rw+CIKkFRJEuIf/iEz8Xr8npXDHi
-        80XtbJuhiErrVl3GZdopb97davlb2hXLIubeOxK340r/uY8J0kNtZSOSihy6W8OB
-        bSpG80wgPd94+Li0VTgOKtKly9angru1hJGVpC8kAQKBgQDa8ilUS/yeySFiN1tC
-        rIXiVb/MN2SuSDTkARJezlVxqrVmE3rf6bQO+VOiFMagzyk9uLai33Ss6ytnJ8u3
-        PkLZaBbJ/9cq9SP3avhfcveZfzcD3Vs6rrPal3sct0IBLByhLGTjD7HR2Zkf/lVS
-        omgxmXzkEwsCqpQ39dowOjXvjQKBgQDE7E2Ez0TTfsHsbtLq8ZIgZwF18hnkLret
-        JTTxfbHL+GqJgREqDUdXNrEJOydkDRdu8iWqmVxeVMcUZtYYNrsExlYKQP6PlOme
-        hxt3/hq/CP4l6DuCmN0xOB+rINtR/AjicnCcgBKFqi+kLNBDvNQ1xPFI5kK3jPBv
-        Mz5gtRHZRQKBgQDBINTl/7URF1d0PGIquOXMVVk+uSn9NcI50Nw0dosWHb+vD8XW
-        V161yqZEFVF0LegyAopPtw5DLZn2fzsKI0hyX4einSNeSCh2qYv3HgFcC8Qqi4pa
-        hBov2mkFVn1JbXC/ltpTE9gFxIx2lTEMGCgSgFKTGF0g9/iQODRDUEWdTQKBgHY/
-        18Tamd/OjDCn0+vVKARhFlV3DekhzJYic4pYCj4LbB4p7N6tnptWcjSy2tKPsfSj
-        X87zzK2whuNPZVyg8OjLGLuLj9E0gJz7UJlbc0An7EVjEOk5VgnKQ+oFDu5KRCOG
-        yOyRU44ERht19ZHXgC7RlnpKGuIRtgdwZBK6aH9pAoGAFBNauJYNFoz8lOICp6QI
-        sYndwMoEAX2uM9HiQW/ka921LEYNKtgfc5w/da7nWjdOWQvXkUIyVI5DFwX8KsUI
-        TbPAzWF+kYG4DirCaJxH3/zdzlLTu10GxrOCmdVBjYQeeBlpsnUMLJjI4ahLb+VF
-        quwNqE4GoZv/RVAm55HosPM=
-        -----END PRIVATE KEY-----
-      `
-
       const userCert = `
         -----BEGIN CERTIFICATE-----
         MIID2zCCAsOgAwIBAgIJAKB2iVVea0fRMA0GCSqGSIb3DQEBCwUAMEkxCzAJBgNV
@@ -322,7 +291,7 @@ describe("Authentication", async () => {
         5u7yFRlWWqWhHShKfrPsd8WXzfd+oGLMp/zi+db51A==
         -----END CERTIFICATE-----
       `
-      const result = await server.activateSession(certificatePolicyId, userCert, userKey)
+      const result = await server.activateSession(certificatePolicyId, userCert)
       expect(result).to.toBeDefined()
     })
 })

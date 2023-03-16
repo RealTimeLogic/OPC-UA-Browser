@@ -12,12 +12,13 @@ import ConnectForm from './components/ConnectForm.vue'
       </div>
     </header>
 
+<!-- 
     <aside>
       <div class="node-tree"> 
         <ua-node :root="root" :connected="connected" v-if="connected"/>
       </div>
     </aside>
-<!-- 
+
     <main>
       <ua-attributes/>
     </main>

@@ -1,8 +1,9 @@
 import ConnectForm from './ConnectForm.vue'
 
-describe('<ConnectForm />', () => {
-  it('renders', () => {
-    // see: https://on.cypress.io/mounting-vue
+describe('ConnectForm', () => {
+  it('should mount', () => {
     cy.mount(ConnectForm)
+
+    cy.get('input').should('contain.text', '')
   })
 })

@@ -21,9 +21,16 @@ async function fillSecurePolicies(url: string) {
   endpoints.value = es.endpoints
 }
 
-async function connectEndpoint(idx: number) {
-  alert(endpoints.value[idx].policyName)
-}
+async function connectEndpoint(evt: Event) {
+  const endpoint = endpoints.value[selectedEndpointIndex.value]
+  const endpointEvent = new CustomEvent("endpoint", {
+    bubbles: true,
+    detail: endpoint
+  })
+
+  evt.target?.dispatchEvent(endpointEvent)
+} 
+
 </script>
 
 <template>
@@ -61,7 +68,7 @@ async function connectEndpoint(idx: number) {
         type="button"
         value="Connect &#8677;"
         v-bind:disabled="endpoints.length == 0"
-        v-on:click="connectEndpoint(selectedEndpointIndex)"
+        @click="connectEndpoint"
       />
     </form>
   </div>

@@ -93,76 +93,16 @@ footer {
   height: 80%;
 }
 
-.endpoint-config-form {
-  width: 280px;
+.flex-column {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding-left: 10px;
-  height: 90px;
-}
-
-.endpoint-select-row {
-  display: flex;
-  flex-direction: row;
   flex-wrap: nowrap;
 }
 
-.endpoint-url {
-  flex-grow: 1;
-}
-
-.security-modes {
+.flex-row {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-}
-
-.fill-endpoints-button {
-  width: 20px;
-  flex: 0;
-  margin-left: 3px;
-}
-
-.endpoints-select {
-  flex-grow: 1;
-}
-
-.connect-button {
-}
-
-.node-tree {
-  padding: 5px;
-  width: 100%;
-}
-
-.node-row {
-  display: flex;
-  cursor: pointer;
-  align-items: center;
-  justify-content: left;
-}
-
-.node-plus {
-  display: inline-block;
-  width: 14px;
-  height: 20px;
-  text-align: left;
-  vertical-align: middle;
-  padding: auto;
-}
-
-.node-name {
-  display: inline-block;
-}
-
-.node-name:hover {
-  background-color: rgb(225, 226, 226);
-}
-
-.node-children {
-  padding-left: 10px;
-  width: 1fr;
 }
 
 .table-node-attributes {
@@ -230,7 +170,4 @@ footer {
   height: 100%;
   position: fixed;
   z-index: 100;
-}
-
-.ua-login-window {
 }

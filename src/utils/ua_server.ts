@@ -57,6 +57,27 @@ const OPCUA = {
     IssuedToken: 3
   },
 
+  getUserTokenTypeName(token: any) {
+    switch (token.tokenType) {
+      case 0: return "Anonymous"
+      case 1: return "UserName"
+      case 2: return "Certificate"
+      case 3: {
+        switch (token.issuedTokenType) {
+          case "http://opcfoundation.org/UA/UserToken#Azure":
+            return "Azure"
+          case "http://opcfoundation.org/UA/Authorization#JWT":
+            return "JWT"
+          case "http://opcfoundation.org/UA/Authorization#OAuth2":
+            return "OAuth2"
+          default:          
+            return "IssuedToken"
+        }
+      }
+    }
+  },
+
+
   getMessageModeName(mode: number) {
     switch (mode) {
       case 1:

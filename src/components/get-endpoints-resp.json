@@ -1,0 +1,174 @@
+{
+    "data": {
+        "endpoints": [
+            {
+                "server": {
+                    "applicationName": {
+                        "text": "RealTimeLogic OPCUA",
+                        "locale": "en-US"
+                    },
+                    "discoveryProfileUri": "http:\/\/opcfoundation.org\/UA-Profile\/Server\/NanoEmbeddedDevice2017",
+                    "applicationType": 0,
+                    "productUri": "http:\/\/realtimelogic.com",
+                    "applicationUri": "realtimelogic.com",
+                    "discoveryUrls": [
+                        "opc.tcp:\/\/localhost:4841"
+                    ]
+                },
+                "securityMode": 1,
+                "endpointUrl": "opc.tcp:\/\/localhost:4841",
+                "securityLevel": 0,
+                "userIdentityTokens": [
+                    {
+                        "policyId": "anonymous",
+                        "tokenType": 0
+                    },
+                    {
+                        "policyId": "username_Basic128Rsa15",
+                        "tokenType": 1,
+                        "securityPolicyUri": "http:\/\/opcfoundation.org\/UA\/SecurityPolicy#Basic128Rsa15"
+                    },
+                    {
+                        "policyId": "username",
+                        "tokenType": 1,
+                        "securityPolicyUri": "http:\/\/opcfoundation.org\/UA\/SecurityPolicy#None"
+                    },
+                    {
+                        "policyId": "x509",
+                        "tokenType": 2
+                    },
+                    {
+                        "policyId": "azure",
+                        "issuedTokenType": "http:\/\/opcfoundation.org\/UA\/UserToken#Azure",
+                        "tokenType": 3
+                    },
+                    {
+                        "policyId": "jwt",
+                        "issuedTokenType": "http:\/\/opcfoundation.org\/UA\/Authorization#JWT",
+                        "tokenType": 3
+                    },
+                    {
+                        "policyId": "oauth2",
+                        "issuedTokenType": "http:\/\/opcfoundation.org\/UA\/Authorization#OAuth2",
+                        "tokenType": 3
+                    }
+                ],
+                "securityPolicyUri": "http:\/\/opcfoundation.org\/UA\/SecurityPolicy#None",
+                "transportProfileUri": "http:\/\/opcfoundation.org\/UA-Profile\/Transport\/uatcp-uasc-uabinary",
+                "serverCertificate": "MIIC\/TCCAeegAwIBAgIDAeJAMAsGCSqGSIb3DQEBCzAUMRIwEAYDVQQDEwlsb2NhbGhvc3QwHhcNMjIwNTAzMjIyMTIwWhcNMzIwNTAxMjIyMTIwWjAUMRIwEAYDVQQDEwlsb2NhbGhvc3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCJvIgTRwn3LkIYX7oYBR\/LKLeAIYAD6YF9DK\/UbhrzfuFfb2SZ6zVdbw1qyEe8Jhe0OCQdQGtAjbCcYKHl4IIXDkcscWWVCQWgKYCRh3rpw0pkXNjabj8sYaBfVKJrh9uvblFXEelw4vxVNhDJjQVhUjHLkwFB5WH12W+WjyMp4tTANwR9ChcxQeTZXzGNWj8HaRw9jnWbZeVCxYrfeVyol0YH09qamgzBkf7Li+CKKVtmwhpCwXEBREP9ks0UjTZVkoTREDQW08lStzoER1t4g0P5z4ABzgCQLm49sqkjswYXbEga8MKyYgb424PoWuprp2VRAMhNaJJvdYyiMVdFAgMBAAGjXDBaMA8GA1UdEwEB\/wQFMAMBAf8wJwYDVR0RBCAwHoYRcmVhbHRpbWVsb2dpYy5jb22CCWxvY2FsaG9zdDALBgNVHQ8EBAMCAfgwEQYJYIZIAYb4QgEBBAQDAgDAMAsGCSqGSIb3DQEBCwOCAQEARYmdiu+\/BbX\/DE4C8QNbDf6NecFatS4FPcWh9qdNlOZsC+zccVX7IriYEKF\/PaBJz1SBWrE2glfUOkXNjhfZzXk6bBXZDewm8JpF0503AreQVh8O4ztda34iXzz7G97ITSDTu366CxdEGr6hj4vQR9EZdPxaXV3mDk2DGaACjY5nodka8FHQBS5fT55WbY7Mt58Snv2ynvKLkaJQ+VGwprX\/BEkHXUCYvcf4kIIq6wHQY4crPZE0Hxv6DcbTsUvMNTDSCrDn1bONgneck2roHLNZPhI4+PLbArLkbuRnm0+Rk3pgr17mqjK1TR8J3qD82CNQfcej75t+ZcGFmRoZIg=="
+            },
+            {
+                "server": {
+                    "applicationName": {
+                        "text": "RealTimeLogic OPCUA",
+                        "locale": "en-US"
+                    },
+                    "discoveryProfileUri": "http:\/\/opcfoundation.org\/UA-Profile\/Server\/NanoEmbeddedDevice2017",
+                    "applicationType": 0,
+                    "productUri": "http:\/\/realtimelogic.com",
+                    "applicationUri": "realtimelogic.com",
+                    "discoveryUrls": [
+                        "opc.tcp:\/\/localhost:4841"
+                    ]
+                },
+                "securityMode": 2,
+                "endpointUrl": "opc.tcp:\/\/localhost:4841",
+                "securityLevel": 0,
+                "userIdentityTokens": [
+                    {
+                        "policyId": "anonymous",
+                        "tokenType": 0
+                    },
+                    {
+                        "policyId": "username_Basic128Rsa15",
+                        "tokenType": 1,
+                        "securityPolicyUri": "http:\/\/opcfoundation.org\/UA\/SecurityPolicy#Basic128Rsa15"
+                    },
+                    {
+                        "policyId": "username",
+                        "tokenType": 1,
+                        "securityPolicyUri": "http:\/\/opcfoundation.org\/UA\/SecurityPolicy#None"
+                    },
+                    {
+                        "policyId": "x509",
+                        "tokenType": 2
+                    },
+                    {
+                        "policyId": "azure",
+                        "issuedTokenType": "http:\/\/opcfoundation.org\/UA\/UserToken#Azure",
+                        "tokenType": 3
+                    },
+                    {
+                        "policyId": "jwt",
+                        "issuedTokenType": "http:\/\/opcfoundation.org\/UA\/Authorization#JWT",
+                        "tokenType": 3
+                    },
+                    {
+                        "policyId": "oauth2",
+                        "issuedTokenType": "http:\/\/opcfoundation.org\/UA\/Authorization#OAuth2",
+                        "tokenType": 3
+                    }
+                ],
+                "securityPolicyUri": "http:\/\/opcfoundation.org\/UA\/SecurityPolicy#Basic128Rsa15",
+                "transportProfileUri": "http:\/\/opcfoundation.org\/UA-Profile\/Transport\/uatcp-uasc-uabinary",
+                "serverCertificate": "MIIC\/TCCAeegAwIBAgIDAeJAMAsGCSqGSIb3DQEBCzAUMRIwEAYDVQQDEwlsb2NhbGhvc3QwHhcNMjIwNTAzMjIyMTIwWhcNMzIwNTAxMjIyMTIwWjAUMRIwEAYDVQQDEwlsb2NhbGhvc3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCJvIgTRwn3LkIYX7oYBR\/LKLeAIYAD6YF9DK\/UbhrzfuFfb2SZ6zVdbw1qyEe8Jhe0OCQdQGtAjbCcYKHl4IIXDkcscWWVCQWgKYCRh3rpw0pkXNjabj8sYaBfVKJrh9uvblFXEelw4vxVNhDJjQVhUjHLkwFB5WH12W+WjyMp4tTANwR9ChcxQeTZXzGNWj8HaRw9jnWbZeVCxYrfeVyol0YH09qamgzBkf7Li+CKKVtmwhpCwXEBREP9ks0UjTZVkoTREDQW08lStzoER1t4g0P5z4ABzgCQLm49sqkjswYXbEga8MKyYgb424PoWuprp2VRAMhNaJJvdYyiMVdFAgMBAAGjXDBaMA8GA1UdEwEB\/wQFMAMBAf8wJwYDVR0RBCAwHoYRcmVhbHRpbWVsb2dpYy5jb22CCWxvY2FsaG9zdDALBgNVHQ8EBAMCAfgwEQYJYIZIAYb4QgEBBAQDAgDAMAsGCSqGSIb3DQEBCwOCAQEARYmdiu+\/BbX\/DE4C8QNbDf6NecFatS4FPcWh9qdNlOZsC+zccVX7IriYEKF\/PaBJz1SBWrE2glfUOkXNjhfZzXk6bBXZDewm8JpF0503AreQVh8O4ztda34iXzz7G97ITSDTu366CxdEGr6hj4vQR9EZdPxaXV3mDk2DGaACjY5nodka8FHQBS5fT55WbY7Mt58Snv2ynvKLkaJQ+VGwprX\/BEkHXUCYvcf4kIIq6wHQY4crPZE0Hxv6DcbTsUvMNTDSCrDn1bONgneck2roHLNZPhI4+PLbArLkbuRnm0+Rk3pgr17mqjK1TR8J3qD82CNQfcej75t+ZcGFmRoZIg=="
+            },
+            {
+                "server": {
+                    "applicationName": {
+                        "text": "RealTimeLogic OPCUA",
+                        "locale": "en-US"
+                    },
+                    "discoveryProfileUri": "http:\/\/opcfoundation.org\/UA-Profile\/Server\/NanoEmbeddedDevice2017",
+                    "applicationType": 0,
+                    "productUri": "http:\/\/realtimelogic.com",
+                    "applicationUri": "realtimelogic.com",
+                    "discoveryUrls": [
+                        "opc.tcp:\/\/localhost:4841"
+                    ]
+                },
+                "securityMode": 3,
+                "endpointUrl": "opc.tcp:\/\/localhost:4841",
+                "securityLevel": 0,
+                "userIdentityTokens": [
+                    {
+                        "policyId": "anonymous",
+                        "tokenType": 0
+                    },
+                    {
+                        "policyId": "username_Basic128Rsa15",
+                        "tokenType": 1,
+                        "securityPolicyUri": "http:\/\/opcfoundation.org\/UA\/SecurityPolicy#Basic128Rsa15"
+                    },
+                    {
+                        "policyId": "username",
+                        "tokenType": 1,
+                        "securityPolicyUri": "http:\/\/opcfoundation.org\/UA\/SecurityPolicy#None"
+                    },
+                    {
+                        "policyId": "x509",
+                        "tokenType": 2
+                    },
+                    {
+                        "policyId": "azure",
+                        "issuedTokenType": "http:\/\/opcfoundation.org\/UA\/UserToken#Azure",
+                        "tokenType": 3
+                    },
+                    {
+                        "policyId": "jwt",
+                        "issuedTokenType": "http:\/\/opcfoundation.org\/UA\/Authorization#JWT",
+                        "tokenType": 3
+                    },
+                    {
+                        "policyId": "oauth2",
+                        "issuedTokenType": "http:\/\/opcfoundation.org\/UA\/Authorization#OAuth2",
+                        "tokenType": 3
+                    }
+                ],
+                "securityPolicyUri": "http:\/\/opcfoundation.org\/UA\/SecurityPolicy#Basic128Rsa15",
+                "transportProfileUri": "http:\/\/opcfoundation.org\/UA-Profile\/Transport\/uatcp-uasc-uabinary",
+                "serverCertificate": "MIIC\/TCCAeegAwIBAgIDAeJAMAsGCSqGSIb3DQEBCzAUMRIwEAYDVQQDEwlsb2NhbGhvc3QwHhcNMjIwNTAzMjIyMTIwWhcNMzIwNTAxMjIyMTIwWjAUMRIwEAYDVQQDEwlsb2NhbGhvc3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCJvIgTRwn3LkIYX7oYBR\/LKLeAIYAD6YF9DK\/UbhrzfuFfb2SZ6zVdbw1qyEe8Jhe0OCQdQGtAjbCcYKHl4IIXDkcscWWVCQWgKYCRh3rpw0pkXNjabj8sYaBfVKJrh9uvblFXEelw4vxVNhDJjQVhUjHLkwFB5WH12W+WjyMp4tTANwR9ChcxQeTZXzGNWj8HaRw9jnWbZeVCxYrfeVyol0YH09qamgzBkf7Li+CKKVtmwhpCwXEBREP9ks0UjTZVkoTREDQW08lStzoER1t4g0P5z4ABzgCQLm49sqkjswYXbEga8MKyYgb424PoWuprp2VRAMhNaJJvdYyiMVdFAgMBAAGjXDBaMA8GA1UdEwEB\/wQFMAMBAf8wJwYDVR0RBCAwHoYRcmVhbHRpbWVsb2dpYy5jb22CCWxvY2FsaG9zdDALBgNVHQ8EBAMCAfgwEQYJYIZIAYb4QgEBBAQDAgDAMAsGCSqGSIb3DQEBCwOCAQEARYmdiu+\/BbX\/DE4C8QNbDf6NecFatS4FPcWh9qdNlOZsC+zccVX7IriYEKF\/PaBJz1SBWrE2glfUOkXNjhfZzXk6bBXZDewm8JpF0503AreQVh8O4ztda34iXzz7G97ITSDTu366CxdEGr6hj4vQR9EZdPxaXV3mDk2DGaACjY5nodka8FHQBS5fT55WbY7Mt58Snv2ynvKLkaJQ+VGwprX\/BEkHXUCYvcf4kIIq6wHQY4crPZE0Hxv6DcbTsUvMNTDSCrDn1bONgneck2roHLNZPhI4+PLbArLkbuRnm0+Rk3pgr17mqjK1TR8J3qD82CNQfcej75t+ZcGFmRoZIg=="
+            }
+        ]
+    }
+}

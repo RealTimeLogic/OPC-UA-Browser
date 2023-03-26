@@ -1,16 +1,20 @@
 <script setup lang="ts">
+
 import { ref } from 'vue'
 import { OPCUA, UAServer } from '../utils/ua_server'
 
 import "../../node_modules/bootstrap/dist/css/bootstrap.min.css"
-import "../../node_modules/bootstrap/dist/js/bootstrap.min.js"
+import "bootstrap/dist/js/bootstrap.min"
+
+const props = defineProps(['id']) // id is a string
+
 
 const endpointUrl = ref('opc.tcp://localhost:4841')
 let endpoints: any = ref([])
 let selected = ref(false)
 let userName = ref("")
 let password = ref("")
-let certificate = ""
+let certificateFile: File | undefined
 
 async function fillSecurePolicies(url: string) {
   endpoints.value = []
@@ -54,9 +58,10 @@ async function connectEndpoint(evt: Event) {
       identity = userName.value
       secret = password.value
       break;
-    case OPCUA.UserTokenType.Certificate:
-      identity = certificate
+    case OPCUA.UserTokenType.Certificate: {
+      identity = await certificateFile?.text()
       break;
+    }
   }
 
   const endpointParams = {
@@ -85,27 +90,30 @@ async function selectToken(eidx: number, tidx: number) {
   selectedTokenIdx = tidx
 }
 
-async function loadCert(evt: Event) {
-  const file = evt.target.files[0]
-  certificate = await file.text();
+async function onSelectedCert(evt: Event) {
+  const file = (evt.target as HTMLInputElement).files?.item(0)
+  if (file) {
+    certificateFile = file
+  }
 }
 
 </script>
 
 <template>
-  <div id="auth-dialog" class="modal">
+  <div :id="props.id" class="modal">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h2 class="modal-title">Connect to server</h2>
+          <h2 class="modal-title">Connection parameters</h2>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
         <div class="modal-body">
           <div class="flex-column">
-            <div class="flex-row">
-              <input v-model="endpointUrl" id="endpointUrl" class="endpoint-url" type="url" placeholder="OPC-UA Endpoint URL"/>
-              <button type="button" class="btn btn-secondary" @click.prevent="fillSecurePolicies(endpointUrl)">*</button>
+
+            <div class="input-group">
+              <input v-model="endpointUrl" type="text" class="form-control" placeholder="Username" aria-label="Endpoint URL" aria-describedby="basic-addon1">
+              <button type="button" class="btn btn-secondary btn-sm" @click.prevent="fillSecurePolicies(endpointUrl)">Get endpoints</button>
             </div>
 
             <div class="accordion accordion-flush" id="accordionFlushExample">
@@ -143,7 +151,7 @@ async function loadCert(evt: Event) {
                         <label class="form-check-label" :for="'certificate-e' + eidx + '-t' + tidx">
                           <div class="mb-3">
                             <label :for="'certificate-e' + eidx + '-t' + tidx" class="form-label">User certificate file</label>
-                            <input :name="'certificate-e' + eidx + '-t' + tidx" class="form-control" type="file" id="certificateFile" :onchange="loadCert">
+                            <input :name="'certificate-e' + eidx + '-t' + tidx" class="form-control" type="file" id="certificateFile" :onchange="onSelectedCert">
                           </div>
                         </label>
                       </div>
@@ -158,10 +166,7 @@ async function loadCert(evt: Event) {
           </div>
         </div>
 
-
-
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             <button type="button" class="btn btn-primary" data-bs-dismiss="modal" :disabled="!selected" @click="connectEndpoint">Login</button>
         </div>
       </div>
@@ -173,9 +178,6 @@ async function loadCert(evt: Event) {
 
 .endpoint-url {
   flex-grow: 1;
-}
-
-.connect-button {
 }
 
 </style>

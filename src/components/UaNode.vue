@@ -15,7 +15,7 @@ function selectNode() {
 </script>
 
 <template>
-    <div class="flex-column">
+    <div :ua-nodeid="root.nodeid" class="flex-column ua-node">
         <div class="node-row flex-row">
             <div class="node-plus" v-on:click.prevent="browse">{{ root.nodes.length == 0 ? "+" : "-" }}</div>
             <div class="node-name" v-on:click.prevent="selectNode">{{ root.label }}</div>

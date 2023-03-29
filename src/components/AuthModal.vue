@@ -6,8 +6,13 @@ import { OPCUA, UAServer } from '../utils/ua_server'
 import "../../node_modules/bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap/dist/js/bootstrap.min"
 
-const props = defineProps(['id']) // id is a string
+export interface Props {
+  id: string
+}
 
+const props = withDefaults(defineProps<Props>(), {
+    id: "auth-dialog"
+})
 
 const endpointUrl = ref('opc.tcp://localhost:4841')
 let endpoints: any = ref([])
@@ -100,8 +105,8 @@ async function onSelectedCert(evt: Event) {
 </script>
 
 <template>
-  <div :id="props.id" class="modal">
-    <div class="modal-dialog">
+  <div :id="props.id" class="modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
           <h2 class="modal-title">Connection parameters</h2>
@@ -112,15 +117,15 @@ async function onSelectedCert(evt: Event) {
           <div class="flex-column">
 
             <div class="input-group">
-              <input v-model="endpointUrl" type="text" class="form-control" placeholder="Username" aria-label="Endpoint URL" aria-describedby="basic-addon1">
-              <button type="button" class="btn btn-secondary btn-sm" @click.prevent="fillSecurePolicies(endpointUrl)">Get endpoints</button>
+              <input v-model="endpointUrl" type="text" class="form-control endpoint-url" placeholder="opc.tcp://localhost:4841" aria-label="Endpoint URL" aria-describedby="basic-addon1">
+              <button type="button" class="btn btn-secondary btn-sm fill-endpoints-button" @click.prevent="fillSecurePolicies(endpointUrl)">Get endpoints</button>
             </div>
 
             <div class="accordion accordion-flush" id="accordionFlushExample">
 
-              <div class="accordion-item flex-column" v-for="(endpoint, eidx) in endpoints" :key="endpoint.policyName">
+              <div class="accordion-item flex-column endpoint-params" v-for="(endpoint, eidx) in endpoints" :key="endpoint.policyName">
                 <h2 class="accordion-header">
-                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#flush-collapse-' + eidx" aria-expanded="false" :aria-controls="'flush-collapse-'+ eidx">
+                  <button class="accordion-button collapsed fill-endpoints-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#flush-collapse-' + eidx" aria-expanded="false" :aria-controls="'flush-collapse-'+ eidx">
                     {{ endpoint.encryptionName }} - {{ endpoint.modeName }}
                   </button>
                 </h2>
@@ -167,7 +172,7 @@ async function onSelectedCert(evt: Event) {
         </div>
 
         <div class="modal-footer">
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" :disabled="!selected" @click="connectEndpoint">Login</button>
+            <button type="button" class="btn btn-primary login-button" data-bs-dismiss="modal" :disabled="!selected" @click="connectEndpoint">Login</button>
         </div>
       </div>
     </div>

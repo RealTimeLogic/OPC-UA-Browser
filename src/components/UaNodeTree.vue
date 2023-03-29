@@ -3,15 +3,13 @@
 import UaNode from "./UaNode.vue"
 import { uaApplication } from '../stores/UaState'
 
-const root = uaApplication().root
-
 </script>
 
 <template>
 
 <div class="flex-column">
     <div v-if="uaApplication().connected">
-      <UaNode class="node-children" :root="root"/>
+      <UaNode class="node-children" :root="uaApplication().root"/>
     </div>
 </div>
 

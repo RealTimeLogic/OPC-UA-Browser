@@ -6,7 +6,8 @@ describe('<AuthForm/>', () => {
     cy.mount(AuthModal) 
     cy.window().then((win) => {
       const elem = win.document.getElementById('auth-dialog')
-      elem.style.display = "block"
+      if (elem)
+        elem.style.display = "block"
     })
   })
 

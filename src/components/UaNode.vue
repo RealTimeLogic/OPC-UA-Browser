@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
 import { uaApplication } from '../stores/UaState'
+import { inject } from "vue";
 
 const props = defineProps(['root'])
 
@@ -8,9 +9,7 @@ function browse() {
     uaApplication().browse(props.root)
 }
 
-function selectNode() {
-    
-}
+const selectNode: any = inject("selectNode")
 
 </script>
 
@@ -18,7 +17,7 @@ function selectNode() {
     <div :ua-nodeid="root.nodeid" class="flex-column ua-node">
         <div class="node-row flex-row">
             <div class="node-plus" v-on:click.prevent="browse">{{ root.nodes.length == 0 ? "+" : "-" }}</div>
-            <div class="node-name" v-on:click.prevent="selectNode">{{ root.label }}</div>
+            <div class="node-name" v-on:click.prevent="selectNode(root.nodeid)">{{ root.label }}</div>
         </div>
         <UaNode class="node-children" v-for="(node, index) in root.nodes" :key="index" :root="node" />
     </div>

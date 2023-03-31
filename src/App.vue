@@ -2,13 +2,28 @@
 import IconRealtimeLogic from './components/icons/IconRealtimeLogic.vue'
 import IconSettings from './components/icons/IconSettings.vue'
 import UaNodeTree from './components/UaNodeTree.vue'
+import UaAttributes from './components/UaAttributes.vue'
 
-import { uaApplication } from './stores/UaState'
+import { uaApplication, AttributeValueType } from './stores/UaState'
 import AuthModal from './components/AuthModal.vue';
+import { provide, ref } from 'vue'
+import MessageLog from './components/MessageLog.vue'
 
 function connectServer(evt: CustomEvent) {
   uaApplication().connect(evt.detail)
 }
+
+const attributes = ref<AttributeValueType[]>([])
+
+async function selectNode(nodeId: string) {
+  const attrs = await uaApplication().readAttributes(nodeId)
+  if (attrs) {
+    attributes.value = attrs
+  }
+}
+
+provide("attributes", attributes)
+provide("selectNode", selectNode)
 
 </script>
 
@@ -28,17 +43,12 @@ function connectServer(evt: CustomEvent) {
     <aside>
       <UaNodeTree/>
     </aside>
-<!--
     <main>
-      <ua-attributes/>
+      <UaAttributes/>
     </main>
 
     <footer>
-      <ua-messages/>
+      <MessageLog :messages="uaApplication().messages"/>
     </footer>
-
-    <ua-login v-if="needAuth"/> -->
-
-    <!-- <RouterView /> -->
   </div>
 </template>

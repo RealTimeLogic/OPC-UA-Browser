@@ -1,13 +1,12 @@
 import AuthModal from './AuthModal.vue'
-import "bootstrap/dist/js/bootstrap.min"
+import 'bootstrap/dist/js/bootstrap.min'
 
 describe('<AuthForm/>', () => {
   beforeEach(() => {
-    cy.mount(AuthModal) 
+    cy.mount(AuthModal)
     cy.window().then((win) => {
       const elem = win.document.getElementById('auth-dialog')
-      if (elem)
-        elem.style.display = "block"
+      if (elem) elem.style.display = 'block'
     })
   })
 
@@ -42,7 +41,7 @@ describe('<AuthForm/>', () => {
 
   it('Sends event on login click', () => {
     cy.document().then((doc) => {
-      doc.addEventListener("endpoint", cy.stub().as('endpoint'))
+      doc.addEventListener('endpoint', cy.stub().as('endpoint'))
     })
 
     cy.get('button.fill-endpoints-button').click()
@@ -50,6 +49,6 @@ describe('<AuthForm/>', () => {
     cy.get('input[type="radio"]:first').check()
     cy.get('button.login-button').click()
 
-    cy.get("@endpoint").should("have.been.calledOnce")
+    cy.get('@endpoint').should('have.been.calledOnce')
   })
 })

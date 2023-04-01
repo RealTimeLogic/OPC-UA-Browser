@@ -1,22 +1,17 @@
 <script setup lang="ts">
-
-import UaNode from "./UaNode.vue"
+import UaNode from './UaNode.vue'
 import { uaApplication } from '../stores/UaState'
-
 </script>
 
 <template>
-
-<div class="flex-column">
+  <div class="flex-column">
     <div v-if="uaApplication().connected">
-      <UaNode class="node-children" :root="uaApplication().root"/>
+      <UaNode class="node-children" :root="uaApplication().root" />
     </div>
-</div>
-
+  </div>
 </template>
 
 <style>
-
 .node-tree {
   padding: 5px;
   width: 100%;
@@ -50,5 +45,4 @@ import { uaApplication } from '../stores/UaState'
   padding-left: 10px;
   width: 1fr;
 }
-
 </style>

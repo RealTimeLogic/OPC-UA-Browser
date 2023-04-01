@@ -19,6 +19,6 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "cypress.d.ts"
-  ],
+, "cypress/App.e2e.ts", "cypress/App.e2e.ts"  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

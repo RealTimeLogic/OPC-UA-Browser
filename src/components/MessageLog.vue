@@ -1,34 +1,33 @@
 <script setup lang="ts">
-import { defineProps } from "vue";
-import { LogEntryType, LogMessageType } from "../stores/UaState";
+import { LogMessageType, uaApplication } from '../stores/UaState'
 
-let props = defineProps({
-    messages: {
-        type: Array as () => LogEntryType[],
-        required: true
-    }
-})
+const messages = uaApplication().messages
 
 function cleaMessages() {
-    props.messages.splice(0, props.messages.length)
+  messages.splice(0, messages.length)
 }
-
 </script>
 <template>
-    <div class="ua-messages">
-        <div class="ua-messages-top">
-        <button v-on:click.prevent="cleaMessages">Clear messages</button>
-        </div>
-        <div class="ua-messages-content">
-        <table class="ua-messages-table">
-            <tr class="ua-messages-tr" v-for="(msg,index) in props.messages" v-bind:key="index">
-                <td :class="msg.type == LogMessageType.Error ? 'ua-messages-td-err': 'ua-messages-td'">{{ msg.time }}</td>
-                <td :class="msg.type == LogMessageType.Error ? 'ua-messages-td-err': 'ua-messages-td'">{{ msg.type }}</td>
-                <td :class="msg.type == LogMessageType.Error ? 'ua-messages-td-err': 'ua-messages-td'"><pre>{{ msg.details }}</pre></td>
-            </tr>
-        </table>
-        </div>
+  <div class="ua-messages">
+    <div class="ua-messages-top">
+      <button v-on:click.prevent="cleaMessages">Clear messages</button>
     </div>
+    <div class="ua-messages-content">
+      <table class="ua-messages-table">
+        <tr class="ua-messages-tr" v-for="(msg, index) in messages" v-bind:key="index">
+          <td :class="msg.type == LogMessageType.Error ? 'ua-messages-td-err' : 'ua-messages-td'">
+            {{ msg.time }}
+          </td>
+          <td :class="msg.type == LogMessageType.Error ? 'ua-messages-td-err' : 'ua-messages-td'">
+            {{ msg.type }}
+          </td>
+          <td :class="msg.type == LogMessageType.Error ? 'ua-messages-td-err' : 'ua-messages-td'">
+            <pre>{{ msg.details }}</pre>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
 </template>
 
 <style>
@@ -71,5 +70,4 @@ function cleaMessages() {
   height: 12px;
   color: red;
 }
-
 </style>

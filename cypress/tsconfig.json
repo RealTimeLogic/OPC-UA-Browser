@@ -5,5 +5,5 @@
     "types": ["cypress", "node"],
     "jsx": "preserve"
   },
-  "include": ["**/*.ts", "../cypress.d.ts"]
+  "include": ["**/*.ts", "../cypress.d.ts", "../src/App.e2e.cy.ts", "../src/App.e2e.cy.ts"]
 }

@@ -1,21 +1,20 @@
 <script setup lang="ts">
+import { defineProps } from 'vue'
 
-import { inject } from 'vue'
-import { AttributeValueType } from '../stores/UaState'
-
-const attributes = inject<AttributeValueType>("attributes")
-
+const props = defineProps(['attributes'])
 </script>
 
 <template>
-    <div>
-        <table class="table-node-attributes">
-            <tr v-for="(attr, index) in attributes" v-bind:key="index">
-                <td class="td-node-attribute td-node-attribute-name" >{{ attr.name }}</td>
-                <td class="td-node-attribute td-node-attribute-value" style="text-align: left"><pre>{{ attr.value }}</pre></td>
-            </tr>
-        </table>
-    </div>
+  <div>
+    <table class="table-node-attributes">
+      <tr v-for="(attr, index) in props.attributes" v-bind:key="index">
+        <td class="td-node-attribute td-node-attribute-name">{{ attr.name }}</td>
+        <td class="td-node-attribute td-node-attribute-value" style="text-align: left">
+          <pre>{{ attr.value }}</pre>
+        </td>
+      </tr>
+    </table>
+  </div>
 </template>
 
 <style>

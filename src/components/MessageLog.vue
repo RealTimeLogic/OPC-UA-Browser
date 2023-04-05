@@ -1,7 +1,17 @@
 <script setup lang="ts">
+import { watch } from 'vue';
 import { LogMessageType, uaApplication } from '../stores/UaState'
 
 const messages = uaApplication().messages
+
+watch(messages, () => {
+    const messagesDiv = document.getElementById("ua-messages")
+    if (messagesDiv) {
+      messagesDiv.scrollTop = messagesDiv.scrollHeight
+    }
+  },
+  {flush: 'post'}
+)
 
 function cleaMessages() {
   messages.splice(0, messages.length)
@@ -12,7 +22,7 @@ function cleaMessages() {
     <div class="ua-messages-top">
       <button v-on:click.prevent="cleaMessages">Clear messages</button>
     </div>
-    <div class="ua-messages-content">
+    <div id="ua-messages" class="ua-messages-content">
       <table class="ua-messages-table">
         <tr class="ua-messages-tr" v-for="(msg, index) in messages" v-bind:key="index">
           <td :class="msg.type == LogMessageType.Error ? 'ua-messages-td-err' : 'ua-messages-td'">

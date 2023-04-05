@@ -1,5 +1,5 @@
 <template>
-  <img class="svg-icon" src="../../assets/settings.svg" />
+  <img width="32" height="32" class="svg-icon" src="../../assets/settings.svg" />
 </template>
 
 <style scoped>

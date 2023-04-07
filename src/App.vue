@@ -7,7 +7,7 @@ import UaNodeTree from './components/UaNodeTree.vue'
 import UaAttributes from './components/UaAttributes.vue'
 
 import { uaApplication, AttributeValueType } from './stores/UaState'
-import { provide, ref } from 'vue'
+import { onMounted, provide, ref } from 'vue'
 
 function connectServer(evt: CustomEvent) {
   uaApplication().connect(evt.detail)
@@ -23,6 +23,16 @@ async function selectNode(nodeId: string) {
 }
 
 provide('selectNode', selectNode)
+
+onMounted(() => {
+  const auth = document.getElementById('show-settings-button')
+  if (auth) {
+    setTimeout(() => {
+      auth.click()
+    }, 100)
+  }
+})
+
 </script>
 
 <template>
@@ -32,6 +42,7 @@ provide('selectNode', selectNode)
     <header>
       <div class="opcua-header" style="height: 100%">
         <button
+          id="show-settings-button"
           type="button"
           style="margin: 1em"
           class="btn btn-sm"

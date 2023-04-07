@@ -176,54 +176,54 @@ class UAServer {
 
   async connectWebSocket(disconnectCallback: any = null) {
     return new Promise((resolve, reject) => {
-      if (this.WebSock != undefined) {
+        if (this.WebSock != undefined) {
         reject(new Error('already connected'))
         return
-      }
-
-      this.disconnectCallback = disconnectCallback
-      this.WebSock = new WebSocket(this.SiteURL)
-      this.WebSock.onopen = () => {
-        console.log('Connected to websocket ' + this.SiteURL)
-        resolve(this)
-      }
-
-      this.WebSock.onclose = () => {
-        console.log('Disconnected websocket ' + this.SiteURL)
-        this._reset(new Error('socket disconnected'))
-        reject(new Error('socket disconnected'))
-      }
-
-      this.WebSock.onerror = (e) => {
-        console.log('Websocket ' + this.SiteURL + 'error: ' + e)
-        this._reset(e)
-        reject(e)
-      }
-
-      this.WebSock.onmessage = (msg) => {
-        const resp = JSON.parse(msg.data)
-        const request = this.Requests.get(resp.id)
-        if (!request) return
-        if (resp.error) {
-          request.reject(new Error(resp.error))
-        } else {
-          clearTimeout(request.timeout)
-          this.Requests.delete(resp.id)
-          request.resolve(resp.data)
         }
-      }
+
+        this.disconnectCallback = disconnectCallback
+        this.WebSock = new WebSocket(this.SiteURL)
+        this.WebSock.onopen = () => {
+          console.log('Connected to websocket ' + this.SiteURL)
+          resolve(this)
+        }
+
+        this.WebSock.onclose = () => {
+          console.log('Disconnected websocket ' + this.SiteURL)
+          this._reset(new Error('socket disconnected'))
+          reject(new Error('socket disconnected'))
+        }
+
+        this.WebSock.onerror = (e) => {
+          console.log('Websocket ' + this.SiteURL + 'error: ' + e)
+          this._reset(e)
+          reject(new Error('socket disconnected'))
+        }
+
+        this.WebSock.onmessage = (msg) => {
+          const resp = JSON.parse(msg.data)
+          const request = this.Requests.get(resp.id)
+          if (!request) return
+          if (resp.error) {
+            request.reject(new Error(resp.error))
+          } else {
+            clearTimeout(request.timeout)
+            this.Requests.delete(resp.id)
+            request.resolve(resp.data)
+          }
+        }
     })
   }
 
   async disconnectWebSocket() {
     return new Promise((resolve, reject) => {
-      if (this.WebSock != undefined) {
-        this.WebSock.close()
-        this.WebSock = undefined
+    if (this.WebSock != undefined) {
+      this.WebSock.close()
+      this.WebSock = undefined
         resolve(this)
-      } else {
+    } else {
         reject(new Error('already disconnected'))
-      }
+    }
     })
   }
 

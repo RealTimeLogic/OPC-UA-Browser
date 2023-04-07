@@ -147,6 +147,7 @@ export const uaApplication = defineStore('uaApplication', () => {
     connected,
     connect,
     browse,
-    readAttributes
+    readAttributes,
+    onMessage
   }
 })

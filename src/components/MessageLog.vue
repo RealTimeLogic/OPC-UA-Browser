@@ -20,7 +20,11 @@ function cleaMessages() {
 <template>
   <div class="ua-messages">
     <div class="ua-messages-top">
-      <button v-on:click.prevent="cleaMessages">Clear messages</button>
+      <button type="button" class="btn btn-secondary btn-sm" 
+        style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;"
+        v-on:click.prevent="cleaMessages">
+          Clear messages
+      </button>
     </div>
     <div id="ua-messages" class="ua-messages-content">
       <table class="ua-messages-table">

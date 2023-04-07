@@ -4,6 +4,7 @@ import { OPCUA, UAServer } from '../utils/ua_server'
 
 import '../../node_modules/bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.min'
+import { uaApplication, LogMessageType } from '../stores/UaState'
 
 export interface Props {
   id: string
@@ -21,27 +22,31 @@ let password = ref('')
 let certificateFile: File | undefined
 
 async function fillSecurePolicies(url: string) {
-  endpoints.value = []
+  try {
+    endpoints.value = []
 
-  const server = new UAServer('ws://localhost/opcua_client.lsp')
-  await server.connectWebSocket()
-  await server.hello(url)
-  await server.openSecureChannel(10000, OPCUA.SecurePolicyUri.None, OPCUA.MessageSecurityMode.None)
+    const server = new UAServer('ws://localhost/opcua_client.lsp')
+    await server.connectWebSocket()
+    await server.hello(url)
+    await server.openSecureChannel(10000, OPCUA.SecurePolicyUri.None, OPCUA.MessageSecurityMode.None)
 
-  const getEndpointsResp: any = await server.getEndpoints()
+    const getEndpointsResp: any = await server.getEndpoints()
 
-  await server.closeSecureChannel()
-  await server.disconnectWebSocket()
+    await server.closeSecureChannel()
+    await server.disconnectWebSocket()
 
-  for (let endpoint of getEndpointsResp.endpoints) {
-    const policyName = OPCUA.getPolicyName(endpoint.securityPolicyUri)
-    const modeName = OPCUA.getMessageModeName(endpoint.securityMode)
-    endpoint.securityPolicyId = policyName + modeName
-    endpoint.encryptionName = policyName
-    endpoint.modeName = modeName
+    for (let endpoint of getEndpointsResp.endpoints) {
+      const policyName = OPCUA.getPolicyName(endpoint.securityPolicyUri)
+      const modeName = OPCUA.getMessageModeName(endpoint.securityMode)
+      endpoint.securityPolicyId = policyName + modeName
+      endpoint.encryptionName = policyName
+      endpoint.modeName = modeName
+    }
+
+    endpoints.value = getEndpointsResp.endpoints
+  } catch (err) {
+    uaApplication().onMessage(LogMessageType.Error, err)
   }
-
-  endpoints.value = getEndpointsResp.endpoints
 }
 
 var selectedEndpointIdx: number | undefined

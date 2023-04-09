@@ -1,0 +1,34 @@
+return {
+  io = _ENV.app.io,
+  bufSize = 65536,
+
+  securePolicies ={
+    { -- #1
+      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#None",
+    },
+    { -- #2
+      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
+      securityMode = {2, 3}, -- Sign + SignAndEncrypt,
+      certificate = ".basic128rsa15_client.pem",
+      key =         ".basic128rsa15_client.key",
+    }
+  },
+
+  logging = {
+    socket = {
+      dbgOn = false,
+      infOn = false,
+      errOn = true
+    },
+    binary = {
+      dbgOn = false,
+      infOn = false,
+      errOn = true
+    },
+    services = {
+      dbgOn = false,
+      infOn = false,
+      errOn = true
+    }
+  }
+}

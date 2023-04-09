@@ -1,0 +1,64 @@
+trace("Initializing OPCUA")
+local ua = require("opcua.api")
+local sock = require("socket")
+local gettime=os.time
+
+-- Connect logging traces
+-- Logging level is controlled by config file.
+ua.trace.dbg = function(msg)
+  trace(gettime(), "[DBG] ", msg)
+end
+
+ua.trace.inf = function(msg)
+  trace(gettime(), "[INF]", msg)
+end
+
+ua.trace.err = function(msg)
+  trace(gettime(), "[ERR]", msg)
+end
+
+-- Load and check client configuration file
+local clientConfig = _ENV.app.io:dofile(".opcua_client_config", _ENV)
+local checkConfig = require("opcua.config")
+checkConfig.client(clientConfig)
+_G.clientConfig = clientConfig
+
+-- Start OPCUA server
+
+local conf = io:dofile(".opcua_server_config", _ENV)
+local ok
+ok, uaServer = pcall(ua.newServer, conf)
+if not ok then
+   trace("Error: server too old for OPCUA example: "..uaServer)
+   return
+end
+
+local function demoAddon(services)
+  local objects = "i=40"
+  io:dofile(".lua/add_variables.lua")(services, objects)
+end
+
+uaServer:initialize(demoAddon)
+uaServer:run()
+
+function onunload()
+  trace("Stopping OPC-UA server")
+  uaServer:shutdown()
+end
+
+_G.uaServices = uaServer.services
+
+local function waitForDebugger()
+
+   -- Load the Lua Debug Monitor "ldbgmon" and call the connect() method
+   -- client=false -> bind (act as server). Default is to act as client.
+   if require"ldbgmon".connect{client=false} then
+      trace"The debugger should stop the program on this line"
+      -- Hit F5 to continue
+   else
+      trace"Debugger connection failed"
+   end
+
+end -- waitForDebugger
+
+--waitForDebugger()

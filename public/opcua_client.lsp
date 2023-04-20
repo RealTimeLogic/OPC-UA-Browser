@@ -84,7 +84,6 @@ local function opcUaClient(wsSock)
               trace("Creating Session")
               local sessionName = request.createSession.sessionName
               local sessionTimeout = request.createSession.sessionTimeout
-              ua.debug()
               resp.data, resp.error = uaClient:createSession(sessionName, sessionTimeout)
               if not resp.error then
                 for _, endpoint in ipairs(resp.data.serverEndpoints) do

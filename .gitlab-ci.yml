@@ -7,20 +7,13 @@
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 stages:
 - build
-- test
-- deploy
-- review
-- dast
-- staging
-- canary
-- production
-- incremental rollout 10%
-- incremental rollout 25%
-- incremental rollout 50%
-- incremental rollout 100%
-- performance
-- cleanup
-sast:
-  stage: test
-include:
-- template: Auto-DevOps.gitlab-ci.yml
+
+build:
+  stage: build
+  image: node:16.20-alpine3.17
+  script:
+    - npm build
+    - npm dist
+  artifacts:
+    paths:
+      - opcua-client.zip

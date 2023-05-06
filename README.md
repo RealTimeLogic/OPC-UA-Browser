@@ -6,7 +6,7 @@ as an HTML and JavaScript powered Single Page Application (SPA). The
 SPA runs in the browser and communicates with the server side OPC-UA
 client using WebSockets.
 
-![OPC-UA Web Client Block Diagram](https://realtimelogic.com/products/opc-ua/opc-ua-web-client.png)
+![OPC-UA Web Client Block Diagram](web-client-opc-ua.png)
 
 The HTML user interface provides a simple and convenient way to
 connect to any OPC UA server using an OPC-UA client on the server
@@ -39,4 +39,4 @@ clients.
 
 The following slideshow shows how to connect to an OPC-UA server and how to browse the OPC-UA server nodes:
 
-![OPC-UA Web Client Slides](https://realtimelogic.com/products/opc-ua/web-client-slides.gif)
+![OPC-UA Web Client Slides](web-client-slides.gif)

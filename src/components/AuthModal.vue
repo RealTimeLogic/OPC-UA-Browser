@@ -4,7 +4,7 @@ import { OPCUA, UAServer } from '../utils/ua_server'
 
 import '../../node_modules/bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.min'
-import { uaApplication, LogMessageType } from '../stores/UaState'
+import { uaApplication, LogMessageType} from '../stores/UaState'
 
 export interface Props {
   id: string
@@ -25,7 +25,7 @@ async function fillSecurePolicies(url: string) {
   try {
     endpoints.value = []
 
-    const server = new UAServer('ws://localhost/opcua_client.lsp')
+    const server = new UAServer(uaApplication().opcuaWebSockURL())
     await server.connectWebSocket()
     await server.hello(url)
     await server.openSecureChannel(10000, OPCUA.SecurePolicyUri.None, OPCUA.MessageSecurityMode.None)

@@ -33,9 +33,19 @@ export type UaStateType = {
   messages: LogEntryType[]
 }
 
+function opcuaWebSockURL() {
+  const pos = window.location.pathname.lastIndexOf('/')
+  const basePath = window.location.pathname.substring(0, pos)
+  const host = window.location.hostname
+  const protocol = window.location.protocol.replace("https:", "wss:").replace("http:", "ws:")
+  const port = window.location.port
+
+  return protocol + '//' + host + ":" + port + basePath + '/opcua_client.lsp'
+}
+
 export const uaApplication = defineStore('uaApplication', () => {
   const server = ref<UAServer | undefined>(undefined)
-  const webSockURL = ref('ws://localhost/opcua_client.lsp')
+  const webSockURL = ref(opcuaWebSockURL())
   const needAuth = ref(false)
   const root = ref<NodeType>({
     nodeid: 'i=84',
@@ -140,7 +150,7 @@ export const uaApplication = defineStore('uaApplication', () => {
 
   return {
     server,
-    webSockURL,
+    opcuaWebSockURL,
     root,
     needAuth,
     messages,

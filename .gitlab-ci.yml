@@ -12,7 +12,7 @@ build:
   image: node:16.20-alpine3.17
   script:
     - npm install --production
-    - npm run build
+    - npm run build-only
     - npm run dist
   artifacts:
     paths:

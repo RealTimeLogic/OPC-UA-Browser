@@ -1,9 +1,11 @@
 include:
-  - project:/ci/cd/version.yml
+  - project: ci/cd
+    file: version.yml
 
 
 stages:
 - build
+- deploy
 
 build:
   stage: build
@@ -14,3 +16,11 @@ build:
   artifacts:
     paths:
       - opcua-client.zip
+
+push-docker-image:
+  extends: .docker-image
+  stage: deploy
+
+increase-version:
+  extends: .increase-version
+  stage: deploy

@@ -2,6 +2,7 @@ include:
   - project: ci/cd
     file: version.yml
 
+workflow: !reference [.ignore-bot-changes-rules]
 
 stages:
 - build

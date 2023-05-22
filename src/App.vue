@@ -27,6 +27,7 @@ provide('selectNode', selectNode)
 onMounted(() => {
   const auth = document.getElementById('show-settings-button')
   if (auth) {
+    console.log(auth.tagName)
     setTimeout(() => {
       auth.click()
     }, 100)

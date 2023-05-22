@@ -1,9 +1,9 @@
 local ua = require("opcua.api")
 
-local function autenticate(tokenType, token, user)
+local function authenticate(tokenType, token, user)
 
   if tokenType == "anonymous" then
-    trace("Anonymous token forbidden")
+    trace("Anonymous token allowed")
     return true
   elseif tokenType == "username" then
     trace("Checking user name and password.")
@@ -12,12 +12,12 @@ local function autenticate(tokenType, token, user)
       return false
     end
 
-    if token ~= "12345" then
+    if token ~= "admin" then
       trace("password invalid")
       return false
     end
 
-    trace("User name '"..user.."' autenticated")
+    trace("User name '"..user.."' authenticated")
     return true
   elseif tokenType == "x509" then
     trace("Checking user certificate.")
@@ -58,7 +58,7 @@ return {
   -- Minimum size 8192.
   bufSize = 16386,
 
-  autenticate = autenticate,
+  authenticate = authenticate,
 
   certificate = ".basic128rsa15_server.pem",
   key =         ".basic128rsa15_server.key",

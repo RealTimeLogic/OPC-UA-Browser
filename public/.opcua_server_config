@@ -128,13 +128,13 @@ return {
 
   logging = {
      socket = {
-       dbgOn = false,  -- debug logs of socket
-       infOn = false,  -- information logs about sockets
+       dbgOn = true,  -- debug logs of socket
+       infOn = true,  -- information logs about sockets
        errOn = true,  -- Errors on sockets
      },
      binary = {
-       dbgOn = false,  -- Debugging traces about binary protocol. Print encoded message hex data.
-       infOn = false,  -- Information traces about binary protocol
+       dbgOn = true,  -- Debugging traces about binary protocol. Print encoded message hex data.
+       infOn = true,  -- Information traces about binary protocol
        errOn = true,  -- Errors in binary protocol
      },
      services = {

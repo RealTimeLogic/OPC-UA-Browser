@@ -8,6 +8,7 @@
 <style scoped>
 .realtimelogic-logo {
   height: 100%;
+  padding: 10px;
 }
 
 .logo-img {

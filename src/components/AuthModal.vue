@@ -6,11 +6,11 @@ import '../../node_modules/bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.min'
 import { uaApplication, LogMessageType} from '../stores/UaState'
 
-export interface Props {
+export interface AuthProps {
   id: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<AuthProps>(), {
   id: 'auth-dialog'
 })
 

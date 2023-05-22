@@ -1,35 +1,38 @@
 local ua = require("opcua.api")
+local makoConf=require"loadconf"
+if makoConf == nil or makoConf.users == nil then
+  makoConf = {
+    users = {
+      admin = "admin"
+    }
+  }
+end
 
 local function authenticate(tokenType, token, user)
-
   if tokenType == "anonymous" then
-    trace("Anonymous token allowed")
+    tracep(false, 4, "Anonymous token allowed")
     return true
   elseif tokenType == "username" then
-    trace("Checking user name and password.")
-    if user ~= "admin" then
-      trace("User name '"..tostring(user).."' invalid")
+    tracep(false, 4, "Checking user name and password.")
+    local password = makoConf.users[user]
+    if password == nil or token ~= password then
+      tracep(false, 1, "password invalid")
       return false
     end
 
-    if token ~= "admin" then
-      trace("password invalid")
-      return false
-    end
-
-    trace("User name '"..user.."' authenticated")
+    tracep(false, 4, "User name '"..user.."' authenticated")
     return true
   elseif tokenType == "x509" then
-    trace("Checking user certificate.")
+    tracep(false, 4, "Checking user certificate.")
     local cert = ba.parsecert(token)
     -- if cert.subject.commonname == "admin" then
       return true
     -- end
   elseif tokenType == "jwt" then
-    trace("Checking JWT token.")
+    tracep(false, 4, "Checking JWT token.")
     return true
   end
-
+  tracep(false, 1, "Invalid tokentype: ", tokenType)
   return false
 end
 

@@ -15,35 +15,35 @@ local function opcUaClient(wsSock)
    while true do
       local data,err = wsSock:read()
       if not data then
-         trace("WS close:",err)
+         tracep(false, 4, "WS close:" ,err)
          break
       end
 
       local request = ba.json.decode(data)
       if not request.id then
-         trace("ERROR: Request has no 'id': ", data)
+         tracep(false, 1, "ERROR: Request has no 'id': ", data)
          break
       end
 
       local resp = { id = request and request.id }
       if request then
          if request.connectEndpoint then
-            trace("Received Connect request")
+            tracep(false, 4, "Received Connect request")
             local endpointUrl = request.connectEndpoint.endpointUrl
             if endpointUrl then
                if uaClient then
-                  trace"Closing UA client"
+                  tracep(false, 4, "Closing UA client")
                   pcall(function()
                      uaClient:closeSession()
                      uaClient:disconnect()
                   end)
                end
-               trace"Creating new UA client"
+               tracep(false, 4, "Creating new UA client")
                clientConfig.cosocketMode = true
                ua.Tools.printTable("Client configuration", clientConfig)
                -- Cosocket mode will automatically be enabled since are we in cosocket context
                uaClient = ua.newClient(clientConfig)
-               trace("Connecting to endpoint '".. endpointUrl .. "'")
+               tracep(false, 4, "Connecting to endpoint '".. endpointUrl .. "'")
                local result = uaClient:connect(endpointUrl)
                if result then
                   uaClient = nil
@@ -53,12 +53,12 @@ local function opcUaClient(wsSock)
                   trace("Connected")
                end
             else
-               trace("Error: client sent empty endpoint URL")
+               tracep(false, 1, "Error: client sent empty endpoint URL")
                resp.error = "Empty endpointURL"
             end
          else
             if not uaClient then
-               trace("Error: OPCUA request without calling connectEndpoint")
+               tracep(false, 1, "Error: OPCUA request without calling connectEndpoint")
                resp.error = "OPC UA Client not connected"
             elseif request.openSecureChannel then
               local timeoutMs = request.openSecureChannel.timeoutMs or 3600000
@@ -70,7 +70,7 @@ local function opcUaClient(wsSock)
               elseif serverCertificate then
                 serverCertificate = ba.b64decode(serverCertificate)
               end
-              trace("Opening secureChannel")
+              tracep(false, 4, "Opening secureChannel")
               resp.data, resp.error = uaClient:openSecureChannel(timeoutMs, securityPolicyUri, securityMode, serverCertificate)
               if resp.data then
                  if resp.data.serverNonce then
@@ -78,10 +78,10 @@ local function opcUaClient(wsSock)
                  end
               end
             elseif request.closeSecureChannel then
-              trace("Closing Secure Channel")
+              tracep(false, 4, "Closing Secure Channel")
               resp.error = uaClient:closeSecureChannel()
             elseif request.createSession then
-              trace("Creating Session")
+              tracep(false, 4, "Creating Session")
               local sessionName = request.createSession.sessionName
               local sessionTimeout = request.createSession.sessionTimeout
               resp.data, resp.error = uaClient:createSession(sessionName, sessionTimeout)
@@ -105,16 +105,16 @@ local function opcUaClient(wsSock)
 
               end
             elseif request.activateSession then
-              trace("Activating Session")
+              tracep(false, 4, "Activating Session")
               resp.data, resp.error = uaClient:activateSession(request.activateSession.policyId, request.activateSession.identity, request.activateSession.secret)
               if resp.data and resp.data.serverNonce then
                 resp.data.serverNonce = ba.b64encode(resp.data.serverNonce)
               end
             elseif request.closeSession then
-              trace("Closing Session")
+              tracep(false, 4, "Closing Session")
               resp.data, resp.error = uaClient:closeSession()
             elseif request.getEndpoints then
-              trace("Selecting endpoints: ")
+              tracep(false, 4, "Selecting endpoints: ")
               local content, error = uaClient:getEndpoints(request.getEndpoints)
               if not error then
                 -- Leave only supported secure Policies
@@ -132,24 +132,26 @@ local function opcUaClient(wsSock)
               resp.data = content
               resp.error = error
             elseif request.browse then
-               trace("Browsing node: "..request.browse.nodeId)
+               tracep(false, 4, "Browsing node: "..request.browse.nodeId)
                resp.data, resp.error = uaClient:browse(request.browse.nodeId)
             elseif request.read then
-               trace("Reading attribute of node: "..request.read.nodeId)
+               tracep(false, 4, "Reading attribute of node: "..request.read.nodeId)
                resp.data, resp.error = uaClient:read(request.read.nodeId)
             else
                resp.error = "Unknown request type"
+               tracep(false, 1, resp.error)
             end
          end
       else
          resp.error = "JSON parse error"
+         tracep(false, 1, resp.error)
       end
       local data = ba.json.encode(resp)
       wsSock:write(data, true)
    end
 
    if uaClient then
-      trace"Closing UA client"
+      tracep(false, 4, "Closing UA client")
       pcall(function()
          uaClient:closeSession()
          uaClient:disconnect()
@@ -159,7 +161,7 @@ local function opcUaClient(wsSock)
 end
 
 if request:header"Sec-WebSocket-Key" then
-   trace"New WebSocket connection"
+   tracep(false, 4, "New WebSocket connection")
    local s = ba.socket.req2sock(request)
    if s then
       s:event(opcUaClient,"s")

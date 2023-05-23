@@ -77,6 +77,15 @@ To run the application, follow these steps:
    same host. If you have your own OPCUA server, you will need to
    enter its specific URL.
 
+   Default user name for Username authentication:
+   - username: 'admin'
+   - password: 'admin'
+
+   To authenticate with certificate it is required any X509 certificate.
+
+   Authentication an your own OPCUA server authentication most probably require different
+   username/password and specific certificate parameteres.
+
 5. Click on login button.
 
 6. Once the connection is successfully established, you will be presented with a root node. To explore its contents, simply click the plus (+) symbol in the browser, which will expand the root node. On the right panel, you will find the OPCUA attributes along with their corresponding values, providing you with detailed information about the node.

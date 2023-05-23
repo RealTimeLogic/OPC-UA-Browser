@@ -1,4 +1,4 @@
-FROM 10.152.183.58:5000/barracuda:v3.8.5186.77
+FROM 10.152.183.58:5000/barracuda:v3.8.5186.78
 
 COPY opcua-client.zip /barracuda/
 

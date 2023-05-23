@@ -1,35 +1,38 @@
 local ua = require("opcua.api")
+local makoConf=require"loadconf"
+if makoConf == nil or makoConf.users == nil then
+  makoConf = {
+    users = {
+      admin = "admin"
+    }
+  }
+end
 
-local function autenticate(tokenType, token, user)
-
+local function authenticate(tokenType, token, user)
   if tokenType == "anonymous" then
-    trace("Anonymous token forbidden")
+    tracep(false, 4, "Anonymous token allowed")
     return true
   elseif tokenType == "username" then
-    trace("Checking user name and password.")
-    if user ~= "admin" then
-      trace("User name '"..tostring(user).."' invalid")
+    tracep(false, 4, "Checking user name and password.")
+    local password = makoConf.users[user]
+    if password == nil or token ~= password then
+      tracep(false, 1, "password invalid")
       return false
     end
 
-    if token ~= "12345" then
-      trace("password invalid")
-      return false
-    end
-
-    trace("User name '"..user.."' autenticated")
+    tracep(false, 4, "User name '"..user.."' authenticated")
     return true
   elseif tokenType == "x509" then
-    trace("Checking user certificate.")
+    tracep(false, 4, "Checking user certificate.")
     local cert = ba.parsecert(token)
     -- if cert.subject.commonname == "admin" then
       return true
     -- end
   elseif tokenType == "jwt" then
-    trace("Checking JWT token.")
+    tracep(false, 4, "Checking JWT token.")
     return true
   end
-
+  tracep(false, 1, "Invalid tokentype: ", tokenType)
   return false
 end
 
@@ -58,7 +61,7 @@ return {
   -- Minimum size 8192.
   bufSize = 16386,
 
-  autenticate = autenticate,
+  authenticate = authenticate,
 
   certificate = ".basic128rsa15_server.pem",
   key =         ".basic128rsa15_server.key",
@@ -128,13 +131,13 @@ return {
 
   logging = {
      socket = {
-       dbgOn = false,  -- debug logs of socket
-       infOn = false,  -- information logs about sockets
+       dbgOn = true,  -- debug logs of socket
+       infOn = true,  -- information logs about sockets
        errOn = true,  -- Errors on sockets
      },
      binary = {
-       dbgOn = false,  -- Debugging traces about binary protocol. Print encoded message hex data.
-       infOn = false,  -- Information traces about binary protocol
+       dbgOn = true,  -- Debugging traces about binary protocol. Print encoded message hex data.
+       infOn = true,  -- Information traces about binary protocol
        errOn = true,  -- Errors in binary protocol
      },
      services = {

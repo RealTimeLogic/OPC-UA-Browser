@@ -16,18 +16,18 @@ return {
 
   logging = {
     socket = {
-      dbgOn = false,
-      infOn = false,
+      dbgOn = true,
+      infOn = true,
       errOn = true
     },
     binary = {
-      dbgOn = false,
-      infOn = false,
+      dbgOn = true,
+      infOn = true,
       errOn = true
     },
     services = {
-      dbgOn = false,
-      infOn = false,
+      dbgOn = true,
+      infOn = true,
       errOn = true
     }
   }

@@ -69,9 +69,9 @@ return {
   securePolicies = {
      -- Secure policy "None" provides no security at all.
      -- if you need some security then remove this element from array
-     --{ -- #1
-     --  securityPolicyUri = ua.Types.SecurityPolicy.None,
-     --},
+     { -- #1
+      securityPolicyUri = ua.Types.SecurityPolicy.None,
+     },
 
      -- secure policy Basic128Rsa15 can have key length 1024 or 2048 bits length
      -- deprecated in the OPC-UA standard.
@@ -147,4 +147,3 @@ return {
      }
   }
 }
-

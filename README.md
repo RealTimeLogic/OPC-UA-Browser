@@ -42,7 +42,9 @@ To run the application, follow these steps:
       cd c:\mako
    ```
 
-2. To start the OPCUA client application, use the following command-line arguments:
+2. To start the OPCUA client application.
+
+   Most simple is to run application with default settings.
    ```
       >mako -l::opcua-client.zip
 
@@ -62,9 +64,27 @@ To run the application, follow these steps:
 
 3. To access the Mako Server, open a web browser and enter the following URL: http://localhost:portno
 
-Replace "portno" with the appropriate port number that the Mako Server is listening on. By default, the Mako Server listens on port 80 for HTTP connections. However, on Linux, the default port is 9357.
+   Replace "portno" with the appropriate port number that the Mako
+   Server is listening on. By default, the Mako Server listens on
+   port 80 for HTTP connections. However, on Linux, the default
+   port is 9357.
 
-4. In the modal that appears, enter the URL of the OPCUA endpoint and provide the necessary authentication parameters. If you're conducting testing, you can use the default address for the OPCUA server, which is 'opc.tcp://localhost:4841'. It's important to note that the OPCUA client also runs an OPCUA server on the same host. If you have your own OPCUA server, you will need to enter its specific URL.
+4. In the modal that appears, enter the URL of the OPCUA endpoint
+   and provide the necessary authentication parameters. If you're
+   conducting testing, you can use the default address for the
+   OPCUA server, which is 'opc.tcp://localhost:4841'. It's important
+   to note that the OPCUA client also runs an OPCUA server on the
+   same host. If you have your own OPCUA server, you will need to
+   enter its specific URL.
+
+   Default user name for Username authentication:
+   - username: 'admin'
+   - password: 'admin'
+
+   To authenticate with certificate it is required any X509 certificate.
+
+   Authentication an your own OPCUA server authentication most probably require different
+   username/password and specific certificate parameteres.
 
 5. Click on login button.
 
@@ -72,8 +92,35 @@ Replace "portno" with the appropriate port number that the Mako Server is listen
 
 Please take a look at the following slideshow, which demonstrates the step-by-step process of connecting to an OPC-UA server and browsing its nodes:
 
-
 ![OPC-UA Web Client Slides](web-client-slides.gif)
+
+
+## Configuration file
+
+The OPCUA client application utilizes a logging configuration and
+retrieves user information from a Mako configuration file. Here is
+an example of the configuration file:
+
+```
+tracelogger = {
+    priority = 1 -- Filters out lower priority messages
+}
+
+users = {
+    user = "password",
+    admin = "12345"
+}
+```
+
+By default, Mako reads the configuration file named 'mako.conf'. If you want to
+use a specific configuration file, you can use the following command line:
+
+```
+>mako -c mako.conf -l::opcua-client.zip
+```
+
+For more information on the configuration file, please refer to the Mako [documentation](https://realtimelogic.com/ba/doc/en/Mako.html#TraceLogger)
+
 
 ## Building OPCUA from sources:
 

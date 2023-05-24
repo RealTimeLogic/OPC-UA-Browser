@@ -7,7 +7,7 @@ import UaNodeTree from './components/UaNodeTree.vue'
 import UaAttributes from './components/UaAttributes.vue'
 
 import { uaApplication, AttributeValueType } from './stores/UaState'
-import { onMounted, provide, ref } from 'vue'
+import { provide, ref } from 'vue'
 
 function connectServer(evt: CustomEvent) {
   uaApplication().connect(evt.detail)
@@ -23,16 +23,6 @@ async function selectNode(nodeId: string) {
 }
 
 provide('selectNode', selectNode)
-
-onMounted(() => {
-  const auth = document.getElementById('show-settings-button')
-  if (auth) {
-    console.log(auth.tagName)
-    setTimeout(() => {
-      auth.click()
-    }, 100)
-  }
-})
 
 </script>
 

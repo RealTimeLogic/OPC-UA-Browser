@@ -10,6 +10,10 @@ local function isSupportedPolicy(policyUri)
    end
 end
 
+local function tracei(msg)
+ tracep(false, 4, msg)
+end
+
 local function opcUaClient(wsSock)
    local ok,uaClient
    while true do
@@ -40,7 +44,7 @@ local function opcUaClient(wsSock)
                end
                tracep(false, 4, "Creating new UA client")
                clientConfig.cosocketMode = true
-               ua.Tools.printTable("Client configuration", clientConfig)
+               ua.Tools.printTable("Client configuration", clientConfig, tracei)
                -- Cosocket mode will automatically be enabled since are we in cosocket context
                uaClient = ua.newClient(clientConfig)
                tracep(false, 4, "Connecting to endpoint '".. endpointUrl .. "'")
@@ -50,7 +54,7 @@ local function opcUaClient(wsSock)
                   trace("Connection failed: ", result)
                   resp.error = result
                else
-                  trace("Connected")
+                  tracep(false, 5, "Connected")
                end
             else
                tracep(false, 1, "Error: client sent empty endpoint URL")
@@ -153,7 +157,6 @@ local function opcUaClient(wsSock)
    if uaClient then
       tracep(false, 4, "Closing UA client")
       pcall(function()
-         uaClient:closeSession()
          uaClient:disconnect()
       end)
    end

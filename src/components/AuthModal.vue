@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, Ref } from 'vue'
 import { OPCUA, UAServer } from '../utils/ua_server'
+import { Modal } from 'bootstrap';
 
-import '../../node_modules/bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap/dist/js/bootstrap.min'
 import { uaApplication, LogMessageType} from '../stores/UaState'
 
 export interface AuthProps {
@@ -21,7 +20,14 @@ let userName = ref('')
 let password = ref('')
 let certificateFile: File | undefined
 
-async function fillSecurePolicies(url: string) {
+const modal: Ref<HTMLDivElement> | Ref<null> = ref(null)
+const connectButton: Ref<HTMLButtonElement> | Ref<null> = ref(null)
+
+async function fillSecurePolicies(url: string, newRequest: boolean = false) {
+  if (newRequest) {
+    clearLocalStorages();
+  }
+  window.localStorage.setItem('localURL', url);
   try {
     endpoints.value = []
 
@@ -57,9 +63,9 @@ async function fillSecurePolicies(url: string) {
 var selectedEndpointIdx: number | undefined
 var selectedTokenIdx: number | undefined
 
-async function connectEndpoint(evt: Event) {
+async function connectEndpoint(evt?: Event): Promise<boolean> {
   if (selectedEndpointIdx == undefined || selectedTokenIdx == undefined) {
-    return
+    return false
   }
 
   const endpoint = endpoints.value[selectedEndpointIdx]
@@ -89,19 +95,34 @@ async function connectEndpoint(evt: Event) {
       secret: secret
     }
   }
+  
+  // Save to local storage
+  if (identity !== undefined && secret !== undefined) {
+    window.localStorage.setItem('localUser', identity);
+    window.localStorage.setItem('localPass', secret);
+  }
 
   const endpointEvent = new CustomEvent('endpoint', {
     bubbles: true,
     detail: endpointParams
   })
 
-  evt.target?.dispatchEvent(endpointEvent)
+  connectButton.value?.dispatchEvent(endpointEvent)
+  if (! evt){
+    // Close modal
+    const modalBS = Modal.getInstance(modal.value!)
+    modalBS?.hide()
+    return true
+  }
+  return false
 }
 
 async function selectToken(eidx: number, tidx: number) {
   selected.value = true
   selectedEndpointIdx = eidx
   selectedTokenIdx = tidx
+  window.localStorage.setItem('localeidx', eidx.toString());
+  window.localStorage.setItem('localetidx', tidx.toString());
 }
 
 async function onSelectedCert(evt: Event) {
@@ -110,10 +131,58 @@ async function onSelectedCert(evt: Event) {
     certificateFile = file
   }
 }
+
+onMounted( async () => {
+
+  /** Automaticaly try get endpoints and login to last */
+  const localUser = window.localStorage.getItem('localUser') || false
+  const localPass = window.localStorage.getItem('localPass') || false
+  const localURL = window.localStorage.getItem('localURL') || false
+  const localeidx = window.localStorage.getItem('localeidx') || false
+  const localetidx = window.localStorage.getItem('localetidx') || false
+  
+  
+  if (localUser && localPass && localURL && localeidx && localetidx) {
+    await fillSecurePolicies(endpointUrl.value);
+    
+    // Try check if idx and tidx exists in endpoits url
+    if (endpoints.value[localeidx]?.userIdentityTokens[localetidx]) {
+      selectToken(parseInt(localeidx), parseInt(localetidx));
+      userName.value = localUser;
+      password.value = localPass;
+      const response = await connectEndpoint();
+      if (response) {
+        return true;
+      }
+    }
+  }
+  else {
+    // Clear local database
+    clearLocalStorages();
+  }
+  openModal();
+})
+
+// Open modal
+function openModal() {
+  const modalBS = Modal.getOrCreateInstance(modal.value!)
+  modalBS?.show()
+}
+
+// Clear all local storage
+function clearLocalStorages() {
+  window.localStorage.removeItem('localUser')
+  window.localStorage.removeItem('localPass')
+  window.localStorage.removeItem('localURL')
+  window.localStorage.removeItem('localeidx')
+  window.localStorage.removeItem('localetidx')
+}
+
+
 </script>
 
 <template>
-  <div :id="props.id" class="modal" tabindex="-1">
+  <div :id="props.id" ref="modal" class="modal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
@@ -140,7 +209,7 @@ async function onSelectedCert(evt: Event) {
               <button
                 type="button"
                 class="btn btn-secondary btn-sm fill-endpoints-button"
-                @click.prevent="fillSecurePolicies(endpointUrl)"
+                @click.prevent="fillSecurePolicies(endpointUrl, true)"
               >
                 Get endpoints
               </button>
@@ -268,6 +337,7 @@ async function onSelectedCert(evt: Event) {
             type="button"
             class="btn btn-primary login-button"
             data-bs-dismiss="modal"
+            ref="connectButton"
             :disabled="!selected"
             @click="connectEndpoint"
           >

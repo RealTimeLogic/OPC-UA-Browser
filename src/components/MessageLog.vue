@@ -58,8 +58,8 @@ const getMessageClass = (msg: LogEntryType) => {
 }
 
 .ua-messages-top {
-  border-top: 1px solid lightgray;
-  border-bottom: 1px solid lightgray;
+  border-top: 1px solid #24262A;
+  border-bottom: 1px solid #24262A;
   padding: 2px 20px;
   font-size: 8px;
   text-align: right;
@@ -74,14 +74,14 @@ const getMessageClass = (msg: LogEntryType) => {
   grid-template-columns: 30px auto 120px;
   grid-gap: 15px;
   padding: 5px 0;
-  margin: 0px;
+  margin: 0px; 
   border-collapse: collapse;  
   font-size: 12px;
   align-items: center;
-  background: rgb(240, 242, 255);
-  border-top: 1px solid lightgray;
+  background: #030329;
+  border-top: 1px solid #525252;
   &.ua-messages-div-err {
-    background: rgb(255, 212, 212);
+    background: #504040;
   }
 
   .ua-messaes-type {

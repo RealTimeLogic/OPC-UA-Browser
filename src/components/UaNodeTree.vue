@@ -4,45 +4,39 @@ import { uaApplication } from '../stores/UaState'
 </script>
 
 <template>
+  <div class="aside-title">
+    <h5>OPC Tree</h5>
+  </div>
   <div class="flex-column">
-    <div v-if="uaApplication().connected">
+    <div v-if="uaApplication().connected" class="node-tree">
       <UaNode class="node-children" :root="uaApplication().root" />
     </div>
   </div>
 </template>
 
-<style>
+<style lang="scss">
+.aside-title {
+  padding: 10px;
+}
 .node-tree {
   padding: 5px;
   width: 100%;
-}
-
-.node-row {
-  display: flex;
-  cursor: pointer;
-  align-items: center;
-  justify-content: left;
-}
-
-.node-plus {
-  display: inline-block;
-  width: 14px;
-  height: 20px;
-  text-align: left;
-  vertical-align: middle;
-  padding: auto;
-}
-
-.node-name {
-  display: inline-block;
-}
-
-.node-name:hover {
-  background-color: rgb(225, 226, 226);
-}
-
-.node-children {
-  padding-left: 10px;
-  width: 1fr;
+  
+  .node-row {
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+    justify-content: left;
+  }
+  
+  .node-plus {
+    display: inline-block;
+    width: 14px;
+    height: 20px;
+    text-align: left;
+    vertical-align: middle;
+    padding: auto;
+  }
+  
 }
 </style>

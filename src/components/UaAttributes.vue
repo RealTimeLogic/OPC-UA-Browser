@@ -32,7 +32,7 @@ const props = defineProps(['attributes'])
 .node-attribute-name {
   border: 3px solid;
   border-image-slice: 1;
-  border-image-source: linear-gradient(to top, transparent 0%, transparent 5%, #828efd 5.5%, #828efd 95%, transparent 95.5%);
+  border-image-source: linear-gradient(to top, transparent 0%, transparent 5%, #3084fa 5.5%, #87B6F9 95%, transparent 95.5%);
   border-left: 0;
   border-top: 0;
   border-bottom: 0;
@@ -41,6 +41,7 @@ const props = defineProps(['attributes'])
   font-weight: bold;
   display: grid;
   grid-template-columns: 1fr;
+  word-break: break-all;
 }
 .node-attribute-value {
   padding-left: 10px;

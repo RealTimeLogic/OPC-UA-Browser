@@ -1,10 +1,14 @@
 <template>
-  <img width="32" height="32" class="svg-icon" src="../../assets/settings.svg" />
+  <img v-if="uaStore.connected" width="32" height="32" src="@/assets/icons8-connect-50.png" />
+  <img v-else width="32" height="32" src="@/assets/icons8-disconnected-60.png" />
 </template>
 
+
+<script setup>
+import { ref } from 'vue';
+import { uaApplication } from '@/stores/UaState';
+
+const uaStore = uaApplication();
+</script>
 <style scoped>
-.svg-icon {
-  -webkit-filter: invert(100%); /* safari 6.0 - 9.0 */
-  filter: invert(100%);
-}
 </style>

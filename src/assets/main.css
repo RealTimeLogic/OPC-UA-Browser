@@ -1,55 +1,13 @@
 body {
   margin: 0;
   padding: 0;
-
-  font-family: Arial, Helvetica, sans-serif;
+  background: #060606;
+  color: #FFFFFF;
+  font-family: 'Montserrat', sans-serif;
 }
 
-.opcua-client-app {
-  display: flex;
-  flex-direction: column;
-}
-
-header {
-  position: fixed;
-  display: flex;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100px;
-}
-
-aside {
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-  left: 0;
-  top: 101px;
-  bottom: 0;
-  width: 300px;
-  border-right: 1px solid lightgray;
-
-  overflow: scroll;
-}
-
-main {
-  position: fixed;
-  left: 301px;
-  top: 101px;
-  bottom: 20%;
-  right: 0;
-  overflow: auto;
-  padding: 4px;
-}
-
-footer {
-  position: fixed;
-  display: flex;
-  left: 301px;
-  top: 80%;
-  bottom: 0px;
-  right: 0;
-  padding: 4px;
+body * {
+  box-sizing: border-box;
 }
 
 /* width */
@@ -60,35 +18,21 @@ footer {
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #060606;
 }
 
 ::-webkit-scrollbar-track:hover {
-  background: #e1e1e1;
+  background: #262323;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: rgb(200, 200, 200);
+  background: #87B6F9;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #97a7b7;
-}
-
-.opcua-header {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  border-bottom: 1px solid silver;
-  justify-content: space-between;
-  align-items: center;
-  background-image: linear-gradient(to bottom, #34495e, #2c3e50);
-}
-
-.realtimelogic-header-logo {
-  height: 80%;
+  background: #2a81fa;
 }
 
 .flex-column {
@@ -111,4 +55,18 @@ footer {
   height: 100%;
   position: fixed;
   z-index: 100;
+}
+
+.modal {
+  
+  --bs-modal-bg: #24262B;
+  --bs-border-color: #262323;
+  --bs-modal-border-color: var(--bs-border-color-translucent);
+  --bs-modal-box-shadow: 0 0.125rem 0.25rem rgba(255, 255, 255, 0.15);
+  --bs-modal-header-border-color: var(--bs-border-color);
+  --bs-modal-footer-border-color: var(--bs-border-color);
+}
+
+.modal .btn-close {
+  filter: invert(1);
 }

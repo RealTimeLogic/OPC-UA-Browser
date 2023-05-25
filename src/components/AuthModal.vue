@@ -349,8 +349,46 @@ function clearLocalStorages() {
   </div>
 </template>
 
-<style>
-.endpoint-url {
-  flex-grow: 1;
+<style lang="scss">
+.modal {
+  
+  --bs-modal-bg: #24262B;
+  --bs-border-color: #262323;
+  --bs-modal-border-color: var(--bs-border-color-translucent);
+  --bs-modal-box-shadow: 0 0.125rem 0.25rem rgba(255, 255, 255, 0.15);
+  --bs-modal-header-border-color: var(--bs-border-color);
+  --bs-modal-footer-border-color: var(--bs-border-color);
+
+  .btn-close {
+    filter: invert(1);
+  }
+
+  .endpoint-url {
+    flex-grow: 1;
+  }
+  .form-control {
+    background-color: #060606;
+    border-color: #262323;
+    color: #FFFFFF;
+    &:focus {
+      background-color: #060606;
+      border-color: #d4e5ff;
+      color: #FFFFFF;
+    }
+  }
+  .accordion  {
+    --bs-accordion-color: #FFFFFF;
+    --bs-accordion-bg: #212529;
+    --bs-accordion-btn-color: #FFFFFF;
+    
+    --bs-accordion-btn-focus-border-color: #d4e5ff;
+    --bs-accordion-btn-focus-box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    --bs-accordion-active-bg: #060606;
+    --bs-accordion-active-color: #FFFFFF;
+    --bs-accordion-btn-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23FFFFFF'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    .accordion-item {
+      border-bottom: 3px solid #060606;
+    }
+  }
 }
 </style>

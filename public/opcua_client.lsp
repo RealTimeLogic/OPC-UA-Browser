@@ -10,8 +10,19 @@ local function isSupportedPolicy(policyUri)
    end
 end
 
-local function tracei(msg)
- tracep(false, 4, msg)
+local function isSupportedTokenType(userTokenPolicy)
+   local type = userTokenPolicy.tokenType
+   local policyUri = userTokenPolicy.securityPolicyUri
+
+   if type == ua.Types.UserTokenType.Anonymous then
+      return true
+   elseif type == ua.Types.UserTokenType.Certificate then
+      return policyUri == nil or isSupportedPolicy(policyUri)
+   elseif type == ua.Types.UserTokenType.UserName then
+      return policyUri == nil or isSupportedPolicy(policyUri)
+   end
+
+   return false
 end
 
 local function opcUaClient(wsSock)
@@ -44,7 +55,7 @@ local function opcUaClient(wsSock)
                end
                tracep(false, 4, "Creating new UA client")
                clientConfig.cosocketMode = true
-               ua.Tools.printTable("Client configuration", clientConfig, tracei)
+               ua.Tools.printTable("Client configuration", clientConfig, ua.trace.dbg)
                -- Cosocket mode will automatically be enabled since are we in cosocket context
                uaClient = ua.newClient(clientConfig)
                tracep(false, 4, "Connecting to endpoint '".. endpointUrl .. "'")
@@ -128,6 +139,15 @@ local function opcUaClient(wsSock)
                      if endpoint.serverCertificate then
                        endpoint.serverCertificate = ba.b64encode(endpoint.serverCertificate)
                      end
+
+                     local userTokenPolicies = {}
+                     for _,userTokenPolicy in ipairs(endpoint.userIdentityTokens) do
+                        if isSupportedTokenType(userTokenPolicy) then
+                           table.insert(userTokenPolicies, userTokenPolicy)
+                        end
+                     end
+                     endpoint.userIdentityTokens = userTokenPolicies
+
                      table.insert(endpoints, endpoint)
                   end
                 end
@@ -171,5 +191,5 @@ if request:header"Sec-WebSocket-Key" then
       return
    end
 end
-response:senderror(404)
+response:senderror(426, "Upgrade to WebSocket")
 ?>

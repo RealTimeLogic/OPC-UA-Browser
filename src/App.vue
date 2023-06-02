@@ -5,6 +5,7 @@ import IconSettings from './components/icons/IconSettings.vue'
 import MessageLog from './components/MessageLog.vue'
 import UaNodeTree from './components/UaNodeTree.vue'
 import UaAttributes from './components/UaAttributes.vue'
+import ServerTime from "./components/ServerTime.vue";
 
 import { uaApplication, AttributeValueType } from './stores/UaState'
 import { onMounted, onUnmounted, provide, ref } from 'vue'
@@ -24,13 +25,51 @@ async function selectNode(nodeId: string) {
 
 provide('selectNode', selectNode)
 
+const serverTime = ref<String>("")
+
+provide('serverTime', selectNode)
+
+
+onMounted(() => {
+  const auth = document.getElementById('show-settings-button')
+  if (auth) {
+    setTimeout(() => {
+      auth.click()
+    }, 100)
+  }
+
+  // Read time on server preiodically to keep OPCUA session alive
+  const readPeriodMs: number = 60000
+  const timer = setInterval(async () => {
+    const app = uaApplication()
+    if (!app.connected) {
+      return
+    }
+
+    const attrs: any = await app.readAttributes("i=2258")
+    // const time = attrs.find((val: any) => {
+    //   return val.name == "Value"
+    // })
+
+    // if (time) {
+    //   const date = new Date(time.value.dateTime * 1000)
+    //   serverTime.value = date.toDateString() + " " + date.toLocaleTimeString()
+    // }
+
+  }, readPeriodMs)
+
+  onUnmounted(()=>{
+  })
+
+})
+
 </script>
 
 <template>
   <div class="opcua-client-app" @endpoint.prevent="connectServer" >
     <AuthModal id="auth-dialog" />
 
-    
+
     <aside>
       <header>
         <IconRealtimeLogic class="realtimelogic-header-logo" />
@@ -93,7 +132,7 @@ provide('selectNode', selectNode)
     border-right: 1px solid #262323;
     min-height: 100vh;
     overflow: scroll;
-    
+
     .realtimelogic-header-logo {
       margin: 0 0 0 15px;
       img {
@@ -101,7 +140,7 @@ provide('selectNode', selectNode)
       }
     }
   }
-  
+
   main {
     background: #1D1E22;
     position: fixed;
@@ -112,7 +151,7 @@ provide('selectNode', selectNode)
     overflow: auto;
     padding: 4px;
   }
-  
+
   footer {
     position: fixed;
     display: flex;

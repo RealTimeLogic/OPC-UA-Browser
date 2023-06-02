@@ -5,9 +5,10 @@ import IconSettings from './components/icons/IconSettings.vue'
 import MessageLog from './components/MessageLog.vue'
 import UaNodeTree from './components/UaNodeTree.vue'
 import UaAttributes from './components/UaAttributes.vue'
+import ServerTime from "./components/ServerTime.vue";
 
 import { uaApplication, AttributeValueType } from './stores/UaState'
-import { onMounted, provide, ref } from 'vue'
+import { onMounted, onUnmounted, provide, ref } from 'vue'
 
 function connectServer(evt: CustomEvent) {
   uaApplication().connect(evt.detail)
@@ -24,6 +25,11 @@ async function selectNode(nodeId: string) {
 
 provide('selectNode', selectNode)
 
+const serverTime = ref<String>("")
+
+provide('serverTime', selectNode)
+
+
 onMounted(() => {
   const auth = document.getElementById('show-settings-button')
   if (auth) {
@@ -31,6 +37,28 @@ onMounted(() => {
       auth.click()
     }, 100)
   }
+
+  const timer = setInterval(async () => {
+    const app = uaApplication()
+    if (!app.connected) {
+      return
+    }
+
+    const attrs: any = await app.readAttributes("i=2258")
+    const time = attrs.find((val: any) => {
+      return val.name == "Value"
+    })
+
+    if (time) {
+      const date = new Date(time.value.dateTime * 1000)
+      serverTime.value = date.toDateString() + " " + date.toLocaleTimeString()
+    }
+
+  }, 1000)
+
+  onUnmounted(()=>{
+  })
+
 })
 
 </script>
@@ -51,6 +79,7 @@ onMounted(() => {
         >
           <IconSettings />
         </button>
+        <ServerTime :server-time="serverTime" />
         <IconRealtimeLogic class="realtimelogic-header-logo" />
       </div>
     </header>

@@ -32,7 +32,12 @@ async function fillSecurePolicies(url: string) {
 
     const getEndpointsResp: any = await server.getEndpoints()
 
-    await server.closeSecureChannel()
+    try {
+      await server.closeSecureChannel()
+    } catch (err) {
+      // ignore
+    }
+
     await server.disconnectWebSocket()
 
     for (let endpoint of getEndpointsResp.endpoints) {

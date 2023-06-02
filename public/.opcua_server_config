@@ -9,41 +9,43 @@ if makoConf == nil or makoConf.users == nil then
 end
 
 local function authenticate(tokenType, token, user)
+  local accessPermitted = false
   if tokenType == "anonymous" then
-    tracep(false, 4, "Anonymous token allowed")
-    return true
+    tracep(false, 5, "Anonymous token")
+    accessPermitted = true
   elseif tokenType == "username" then
-    tracep(false, 4, "Checking user name and password.")
+    tracep(false, 5, string.format("Checking user name '%s' and password.", user))
     local password = makoConf.users[user]
-    if password == nil or token ~= password then
-      tracep(false, 1, "password invalid")
-      return false
+    if password ~= nil and token == password then
+      accessPermitted = true
     end
-
-    tracep(false, 4, "User name '"..user.."' authenticated")
-    return true
   elseif tokenType == "x509" then
-    tracep(false, 4, "Checking user certificate.")
+    tracep(false, 5, "Checking user certificate.")
     local cert = ba.parsecert(token)
-    -- if cert.subject.commonname == "admin" then
-      return true
-    -- end
-  elseif tokenType == "jwt" then
-    tracep(false, 4, "Checking JWT token.")
-    return true
+    -- if cert ~= nil and makoConf.users[cert.subject.commonname] ~= nil then
+    if cert ~= nil then
+      tracep(false, 5, "x509 certificate commom name: ", cert.subject.commonname)
+      accessPermitted = true
+    end
   end
-  tracep(false, 1, "Invalid tokentype: ", tokenType)
-  return false
+
+  if accessPermitted then
+    tracep(false, 5, "Access permitted")
+  else
+    tracep(false, 5, "Access denied")
+  end
+
+  return accessPermitted
 end
 
 return {
   io = _ENV.app.io,
   -- Application name
-  applicationName="RealTimeLogic OPCUA",
+  applicationName="RealTimeLogic OPCUA Server",
 
   -- Application URI should be equal to
   -- URI subject alternative name extention in the certificate
-  applicationUri="realtimelogic.com",
+  -- applicationUri="realtimelogic.com",
 
   -- endpoint URL will be sent to clients.
   endpointUrl = "opc.tcp://localhost:4841",

@@ -70,7 +70,7 @@ provide('selectNode', selectNode)
     display: grid;
     grid-template-columns: auto auto;
     align-items: center;
-    min-height: 75px;
+    height: 150px;
 
 
   .opcua-header {

@@ -75,7 +75,7 @@ provide('selectNode', selectNode)
 
   .opcua-header {
     width: 100%;
-    height: 75px;
+    height: 150px;
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -106,8 +106,8 @@ provide('selectNode', selectNode)
     background: #1D1E22;
     position: fixed;
     left: 301px;
-    top: 0;
-    bottom: 20%;
+    top: 150px;
+    bottom: 0;
     right: 0;
     overflow: auto;
     padding: 4px;
@@ -117,9 +117,9 @@ provide('selectNode', selectNode)
     position: fixed;
     display: flex;
     left: 301px;
-    top: 80%;
-    bottom: 0px;
+    top: 0;
     right: 0;
+    height: 150px;
     padding: 4px;
   }
 }

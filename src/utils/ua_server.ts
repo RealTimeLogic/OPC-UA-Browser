@@ -201,15 +201,19 @@ class UAServer {
         }
 
         this.WebSock.onmessage = (msg) => {
-          const resp = JSON.parse(msg.data)
-          const request = this.Requests.get(resp.id)
-          if (!request) return
-          if (resp.error) {
-            request.reject(new Error(resp.error))
-          } else {
-            clearTimeout(request.timeout)
-            this.Requests.delete(resp.id)
-            request.resolve(resp.data)
+          try {
+            const resp = JSON.parse(msg.data)
+            const request = this.Requests.get(resp.id)
+            if (!request) return
+            if (resp.error) {
+              request.reject(new Error(resp.error))
+            } else {
+              clearTimeout(request.timeout)
+              this.Requests.delete(resp.id)
+              request.resolve(resp.data)
+            }
+          } catch(e) {
+            throw new Error('Invalid JSON response: ' + msg.data)
           }
         }
     })

@@ -74,7 +74,12 @@ export const uaApplication = defineStore('uaApplication', () => {
     try {
       onMessage(LogMessageType.Info, 'Connecting to websocket ' + webSockURL.value)
       const srv = new UAServer(webSockURL.value)
-      await srv.connectWebSocket()
+      try {
+        await srv.connectWebSocket()
+      } catch (e: any) {
+        onMessage(LogMessageType.Error, e)
+        return
+      }
       onMessage(LogMessageType.Info, 'Connecting to endpoint ' + endpoint.endpointUrl)
       await srv.hello(endpoint.endpointUrl)
       onMessage(LogMessageType.Info, 'Opening secure channel')

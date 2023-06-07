@@ -30,23 +30,23 @@ provide('selectNode', selectNode)
   <div class="opcua-client-app" @endpoint.prevent="connectServer" >
     <AuthModal id="auth-dialog" />
 
-    <header>
-      <IconRealtimeLogic class="realtimelogic-header-logo" />
-      <div class="opcua-header">
-        <button
-          id="show-settings-button"
-          type="button"
-          style="margin: 1em"
-          class="btn btn-sm"
-          data-bs-toggle="modal"
-          data-bs-target="#auth-dialog"
-        >
-          <IconSettings />
-        </button>
-      </div>
-    </header>
-
+    
     <aside>
+      <header>
+        <IconRealtimeLogic class="realtimelogic-header-logo" />
+        <div class="opcua-header">
+          <button
+            id="show-settings-button"
+            type="button"
+            style="margin: 1em"
+            class="btn btn-sm"
+            data-bs-toggle="modal"
+            data-bs-target="#auth-dialog"
+          >
+            <IconSettings />
+          </button>
+        </div>
+      </header>
       <UaNodeTree />
     </aside>
     <main>
@@ -65,49 +65,48 @@ provide('selectNode', selectNode)
 .opcua-client-app {
   display: flex;
   flex-direction: column;
-   > header {
-    background: transparent;
+   header {
+    background: #000000;
     display: grid;
-    grid-template-columns: 300px 1fr;
+    grid-template-columns: auto auto;
     align-items: center;
-    min-height: 100px;
+    min-height: 75px;
 
-    .realtimelogic-header-logo {
-      height: 80%;
-      max-width: 200px;
-      padding: 15px;
-      img {
-        width: 100%;
-      }
-    }
 
-    .opcua-header {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-    }
-   }
+  .opcua-header {
+    width: 100%;
+    height: 75px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  }
   aside {
     position: fixed;
     display: flex;
     flex-direction: column;
     background: #1D1E22;
     left: 0;
-    top: 101px;
     bottom: 0;
     width: 300px;
+    top: 0;
     border-right: 1px solid #262323;
-  
+    min-height: 100vh;
     overflow: scroll;
+    
+    .realtimelogic-header-logo {
+      margin: 0 0 0 15px;
+      img {
+        width: 170px;
+      }
+    }
   }
   
   main {
     background: #1D1E22;
     position: fixed;
     left: 301px;
-    top: 101px;
+    top: 0;
     bottom: 20%;
     right: 0;
     overflow: auto;

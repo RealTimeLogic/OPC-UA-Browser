@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, Ref } from 'vue'
+import { ref, onMounted, Ref, computed } from 'vue'
 import { OPCUA, UAServer } from '../utils/ua_server'
 import { Modal } from 'bootstrap';
 
@@ -15,10 +15,12 @@ const props = withDefaults(defineProps<AuthProps>(), {
 
 const endpointUrl = ref('opc.tcp://localhost:4841')
 let endpoints: any = ref([])
-let selected = ref(false)
-let userName = ref('')
-let password = ref('')
-let certificateFile: File | undefined
+let userName: Ref<string> = ref('')
+let password: Ref<string> = ref('')
+
+var selectedEndpointIdx: Ref<number | undefined> = ref(undefined)
+var selectedTokenIdx: Ref<number | undefined> = ref(undefined)
+let certificateFile: Ref<File | undefined> = ref(undefined)
 
 const modal: Ref<HTMLDivElement> | Ref<null> = ref(null)
 const connectButton: Ref<HTMLButtonElement> | Ref<null> = ref(null)
@@ -32,6 +34,7 @@ async function fillSecurePolicies(url: string, newRequest: boolean = false) {
     endpoints.value = []
 
     const server = new UAServer(uaApplication().opcuaWebSockURL())
+    console.log('before connectWebSocket');
     await server.connectWebSocket()
     await server.hello(url)
     await server.openSecureChannel(10000, OPCUA.SecurePolicyUri.None, OPCUA.MessageSecurityMode.None)
@@ -60,16 +63,13 @@ async function fillSecurePolicies(url: string, newRequest: boolean = false) {
   }
 }
 
-var selectedEndpointIdx: number | undefined
-var selectedTokenIdx: number | undefined
-
 async function connectEndpoint(evt?: Event): Promise<boolean> {
-  if (selectedEndpointIdx == undefined || selectedTokenIdx == undefined) {
+  if (selectedEndpointIdx.value == undefined || selectedTokenIdx.value == undefined) {
     return false
   }
 
-  const endpoint = endpoints.value[selectedEndpointIdx]
-  const tokenType = endpoint.userIdentityTokens[selectedTokenIdx]
+  const endpoint = endpoints.value[selectedEndpointIdx.value]
+  const tokenType = endpoint.userIdentityTokens[selectedTokenIdx.value]
 
   let secret
   let identity
@@ -79,7 +79,7 @@ async function connectEndpoint(evt?: Event): Promise<boolean> {
       secret = password.value
       break
     case OPCUA.UserTokenType.Certificate: {
-      identity = await certificateFile?.text()
+      identity = await certificateFile.value?.text()
       break
     }
   }
@@ -108,27 +108,43 @@ async function connectEndpoint(evt?: Event): Promise<boolean> {
   })
 
   connectButton.value?.dispatchEvent(endpointEvent)
-  if (! evt){
-    // Close modal
-    const modalBS = Modal.getInstance(modal.value!)
-    modalBS?.hide()
-    return true
-  }
-  return false
+  // Close modal
+  const modalBS = Modal.getInstance(modal.value!)
+  modalBS?.hide()
+  return true
 }
 
 async function selectToken(eidx: number, tidx: number) {
-  selected.value = true
-  selectedEndpointIdx = eidx
-  selectedTokenIdx = tidx
+  selectedEndpointIdx.value = eidx
+  selectedTokenIdx.value = tidx
   window.localStorage.setItem('localeidx', eidx.toString());
   window.localStorage.setItem('localetidx', tidx.toString());
 }
 
+const selected = computed(() => {
+  
+  const idx = selectedEndpointIdx.value;
+  const tidx = selectedTokenIdx.value;
+  if ( idx === undefined  ) return false;
+  if ( tidx === undefined ) return false;
+  
+  if ( ! endpoints.value[idx] ) return false;
+  if ( ! endpoints.value[idx]?.userIdentityTokens[tidx] ) return false;
+  
+  const endpoint = endpoints.value[idx].userIdentityTokens[tidx]
+  if ( endpoint.tokenType === OPCUA.UserTokenType.Anonymous ) return true;
+  if ( endpoint.tokenType === OPCUA.UserTokenType.UserName && userName.value !== '' && userName.value !== '' ) return true;
+  if ( endpoint.tokenType === OPCUA.UserTokenType.Certificate && certificateFile.value !== undefined ) return true;
+
+
+  return false
+});
+
+
 async function onSelectedCert(evt: Event) {
   const file = (evt.target as HTMLInputElement).files?.item(0)
   if (file) {
-    certificateFile = file
+    certificateFile.value = file
   }
 }
 
@@ -148,6 +164,7 @@ onMounted( async () => {
     // Try check if idx and tidx exists in endpoits url
     if (endpoints.value[localeidx]?.userIdentityTokens[localetidx]) {
       selectToken(parseInt(localeidx), parseInt(localetidx));
+      const radio = document.getElementById('e' + localeidx + 't' + localetidx) as HTMLInputElement 
       userName.value = localUser;
       password.value = localPass;
       const response = await connectEndpoint();
@@ -215,7 +232,7 @@ function clearLocalStorages() {
               </button>
             </div>
 
-            <div class="accordion accordion-flush" id="accordionFlushExample">
+            <div class="accordion accordion-flush" id="accordionFlush">
               <div
                 class="accordion-item flex-column endpoint-params"
                 v-for="(endpoint, eidx) in endpoints"
@@ -223,11 +240,12 @@ function clearLocalStorages() {
               >
                 <h2 class="accordion-header">
                   <button
-                    class="accordion-button collapsed fill-endpoints-button"
+                    class="accordion-button fill-endpoints-button"
                     type="button"
                     data-bs-toggle="collapse"
+                    :class="{collapsed : selectedEndpointIdx !== eidx}"
                     :data-bs-target="'#flush-collapse-' + eidx"
-                    aria-expanded="false"
+                    :aria-expanded="selectedEndpointIdx === eidx ? 'true' : 'false'"
                     :aria-controls="'flush-collapse-' + eidx"
                   >
                     {{ endpoint.encryptionName }} - {{ endpoint.modeName }}
@@ -237,7 +255,8 @@ function clearLocalStorages() {
                 <div
                   :id="'flush-collapse-' + eidx"
                   class="accordion-collapse collapse"
-                  data-bs-parent="#accordionFlushExample"
+                  :class="{show: selectedEndpointIdx === eidx}"
+                  data-bs-parent="#accordionFlush"
                 >
                   <div class="accordion-body">
                     <div
@@ -254,10 +273,11 @@ function clearLocalStorages() {
                           class="form-check-input"
                           type="radio"
                           :name="'tokentype-e' + eidx"
-                          :id="'anonymous-e' + eidx + '-t' + tidx"
+                          :id="'e' + eidx + '-t' + tidx"
+                          :checked="eidx == selectedEndpointIdx && tidx == selectedTokenIdx"
                           @change="selectToken(eidx, tidx)"
                         />
-                        <label class="form-check-label" :for="'anonymous-e' + eidx + '-t' + tidx">
+                        <label class="form-check-label" :for="'e' + eidx + '-t' + tidx">
                           Anonymous
                         </label>
                       </div>
@@ -270,10 +290,11 @@ function clearLocalStorages() {
                           class="form-check-input"
                           type="radio"
                           :name="'tokentype-e' + eidx"
-                          :id="'username-e' + eidx + '-t' + tidx"
+                          :id="'e' + eidx + '-t' + tidx"
+                          :checked="eidx == selectedEndpointIdx && tidx == selectedTokenIdx"
                           @change="selectToken(eidx, tidx)"
                         />
-                        <label class="form-check-label" :for="'username-e' + eidx + '-t' + tidx"
+                        <label class="form-check-label" :for="'e' + eidx + '-t' + tidx"
                           >Username</label
                         >
                         <div
@@ -286,6 +307,7 @@ function clearLocalStorages() {
                             placeholder="Username"
                             aria-label="Username"
                             v-model="userName"
+                            @keyup.enter="connectEndpoint"
                           />
                           <span class="input-group-text">@</span>
                           <input
@@ -294,6 +316,7 @@ function clearLocalStorages() {
                             placeholder="Password"
                             aria-label="Server"
                             v-model="password"
+                            @keyup.enter="connectEndpoint"
                           />
                         </div>
                       </div>
@@ -306,16 +329,17 @@ function clearLocalStorages() {
                           class="form-check-input"
                           type="radio"
                           :name="'tokentype-e' + eidx"
-                          :id="'certificate-e' + eidx + '-t' + tidx"
+                          :id="'e' + eidx + '-t' + tidx"
+                          :checked="eidx == selectedEndpointIdx && tidx == selectedTokenIdx"
                           @change="selectToken(eidx, tidx)"
                         />
-                        <label class="form-check-label" :for="'certificate-e' + eidx + '-t' + tidx">
+                        <label class="form-check-label" :for="'e' + eidx + '-t' + tidx">
                           <div class="mb-3">
-                            <label :for="'certificate-e' + eidx + '-t' + tidx" class="form-label"
+                            <label :for="'e' + eidx + '-t' + tidx" class="form-label"
                               >User certificate file</label
                             >
                             <input
-                              :name="'certificate-e' + eidx + '-t' + tidx"
+                              :name="'e' + eidx + '-t' + tidx"
                               class="form-control"
                               type="file"
                               id="certificateFile"

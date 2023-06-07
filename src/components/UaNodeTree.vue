@@ -4,17 +4,23 @@ import { uaApplication } from '../stores/UaState'
 </script>
 
 <template>
-  <div class="aside-title">
-    <h5>OPC Tree</h5>
-  </div>
-  <div class="flex-column">
-    <div v-if="uaApplication().connected" class="node-tree">
-      <UaNode class="node-children" :root="uaApplication().root" />
+  <div class="aside-node">
+    <div class="aside-title">
+      <h5>OPC Tree</h5>
+    </div>
+    <div class="flex-column">
+      <div v-if="uaApplication().connected" class="node-tree">
+        <UaNode class="node-children" :root="uaApplication().root" />
+      </div>
     </div>
   </div>
 </template>
 
 <style lang="scss">
+.aside-node {
+  max-height: #{calc(100vh - 180px)};
+  overflow: auto;
+}
 .aside-title {
   padding: 10px;
 }

@@ -24,15 +24,20 @@ const props = defineProps(['attributes'])
 
 .node-attribute {
   display: grid;
-  grid-template-columns: 20% 1fr;
+  grid-template-columns: 200px 1fr;
   padding: 10px 5px;
   border-top: 1px solid lightgray;
+  transition: all ease 0.7s;
+  cursor: pointer;
+  &:hover {
+    background: #4f515c;
+  }
 }
 
 .node-attribute-name {
   border: 3px solid;
   border-image-slice: 1;
-  border-image-source: linear-gradient(to top, transparent 0%, transparent 5%, #3084fa 5.5%, #87B6F9 95%, transparent 95.5%);
+  border-image-source: linear-gradient(to top, transparent 0%, transparent 5%, #3084fa 15%, #87B6F9 85%, transparent 95%);
   border-left: 0;
   border-top: 0;
   border-bottom: 0;
@@ -46,7 +51,10 @@ const props = defineProps(['attributes'])
 .node-attribute-value {
   padding-left: 10px;
   pre {
+    overflow: initial;
     margin: 0;
+    font-size: 1em;
+    line-height: 1em;
   }
 }
 </style>

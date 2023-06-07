@@ -22,9 +22,6 @@ function cleaMessages() {
   messages.splice(0, messages.length)
 }
 
-const getMessageClass = (msg: LogEntryType) => {
-  return msg.type == LogMessageType.Error ? 'ua-messages-td-err' : 'ua-messages-td'
-}
 </script>
 <template>
   <div class="ua-messages">

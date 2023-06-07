@@ -134,8 +134,7 @@ To build mako application you need to run following commangs:
 
 ```
 npm run install -D
-npm run build-only
-npm run dist
+npm run create-zip
 ```
 
 This sequence ofommands will produce zip archive `opcua-client.zip`
@@ -145,5 +144,6 @@ This sequence ofommands will produce zip archive `opcua-client.zip`
 - **build** build with lint check
 - **build-only** run build only without any lint, all files copy to folder dist
 - **dist** create mako application zip archive from `dist' directory.
+- **create-zip** run build only without any lint and create mako application zip archive from `dist' directory.
 - **dev**   run development server
 - **test**  run all tests

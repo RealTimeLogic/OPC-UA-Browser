@@ -4,11 +4,8 @@
 </template>
 
 
-<script setup>
-import { ref } from 'vue';
-import { uaApplication } from '@/stores/UaState';
+<script setup  lang="ts">
+import { uaApplication } from '../../stores/UaState';
 
 const uaStore = uaApplication();
 </script>
-<style scoped>
-</style>

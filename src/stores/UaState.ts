@@ -99,6 +99,7 @@ export const uaApplication = defineStore('uaApplication', () => {
       )
       onMessage(LogMessageType.Info, 'Connected to OPCUA server')
       server.value = srv
+      root.value.nodes = []
     } catch (e: any) {
       onMessage(LogMessageType.Error, e)
     }

@@ -184,18 +184,16 @@ class UAServer {
         this.disconnectCallback = disconnectCallback
         this.WebSock = new WebSocket(this.SiteURL)
         this.WebSock.onopen = () => {
-          console.log('Connected to websocket ' + this.SiteURL)
           resolve(this)
         }
 
         this.WebSock.onclose = () => {
-          console.log('Disconnected websocket ' + this.SiteURL)
           this._reset(new Error('socket disconnected'))
           reject(new Error('socket disconnected'))
         }
 
         this.WebSock.onerror = (e) => {
-          console.log('Websocket ' + this.SiteURL + 'error: ' + e)
+          console.error('Websocket ' + this.SiteURL + 'error: ' + e)
           this._reset(e)
           reject(new Error('socket disconnected'))
         }

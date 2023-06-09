@@ -13,7 +13,9 @@ const props = withDefaults(defineProps<AuthProps>(), {
   id: 'auth-dialog'
 })
 
-const endpointUrl = ref('opc.tcp://localhost:4841')
+
+const hostname = window.location.hostname || 'localhost';
+let endpointUrl = ref(`opc.tcp://${hostname}:4841`)
 let endpoints: any = ref([])
 let userName: Ref<string> = ref('')
 let password: Ref<string> = ref('')
@@ -29,12 +31,12 @@ async function fillSecurePolicies(url: string, newRequest: boolean = false) {
   if (newRequest) {
     clearLocalStorages();
   }
-  window.localStorage.setItem('localURL', url);
+  window.localStorage.setItem('localEndpointUrl', url);
   try {
     endpoints.value = []
 
     const server = new UAServer(uaApplication().opcuaWebSockURL())
-    console.log('before connectWebSocket');
+    
     await server.connectWebSocket()
     await server.hello(url)
     await server.openSecureChannel(10000, OPCUA.SecurePolicyUri.None, OPCUA.MessageSecurityMode.None)
@@ -83,9 +85,9 @@ async function connectEndpoint(evt?: Event): Promise<boolean> {
       break
     }
   }
-
+  
   const endpointParams = {
-    endpointUrl: endpoint.endpointUrl,
+    endpointUrl: endpoint.endpointUrl.replace('//localhost:', `//${hostname}:`),
     securityPolicyUri: endpoint.securityPolicyUri,
     securityMode: endpoint.securityMode,
     serverCertificate: endpoint.serverCertificate,
@@ -153,12 +155,12 @@ onMounted( async () => {
   /** Automaticaly try get endpoints and login to last */
   const localUser = window.localStorage.getItem('localUser') || false
   const localPass = window.localStorage.getItem('localPass') || false
-  const localURL = window.localStorage.getItem('localURL') || false
+  const localEndpointUrl = window.localStorage.getItem('localEndpointUrl') || false
   const localeidx = window.localStorage.getItem('localeidx') || false
   const localetidx = window.localStorage.getItem('localetidx') || false
   
   
-  if (localUser && localPass && localURL && localeidx && localetidx) {
+  if (localUser && localPass && localEndpointUrl && localeidx && localetidx) {
     await fillSecurePolicies(endpointUrl.value);
     
     // Try check if idx and tidx exists in endpoits url
@@ -190,7 +192,7 @@ function openModal() {
 function clearLocalStorages() {
   window.localStorage.removeItem('localUser')
   window.localStorage.removeItem('localPass')
-  window.localStorage.removeItem('localURL')
+  window.localStorage.removeItem('localEndpointUrl')
   window.localStorage.removeItem('localeidx')
   window.localStorage.removeItem('localetidx')
 }
@@ -219,7 +221,7 @@ function clearLocalStorages() {
                 v-model="endpointUrl"
                 type="text"
                 class="form-control endpoint-url"
-                placeholder="opc.tcp://localhost:4841"
+                :placeholder="`opc.tcp://${hostname}:4841`"
                 aria-label="Endpoint URL"
                 aria-describedby="basic-addon1"
               />

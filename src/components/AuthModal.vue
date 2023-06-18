@@ -36,7 +36,7 @@ async function fillSecurePolicies(url: string, newRequest: boolean = false) {
     endpoints.value = []
 
     const server = new UAServer(uaApplication().opcuaWebSockURL())
-    
+
     await server.connectWebSocket()
     await server.hello(url)
     await server.openSecureChannel(10000, OPCUA.SecurePolicyUri.None, OPCUA.MessageSecurityMode.None)
@@ -65,7 +65,7 @@ async function fillSecurePolicies(url: string, newRequest: boolean = false) {
   }
 }
 
-async function connectEndpoint(evt?: Event): Promise<boolean> {
+async function connectEndpoint(): Promise<boolean> {
   if (selectedEndpointIdx.value == undefined || selectedTokenIdx.value == undefined) {
     return false
   }
@@ -85,7 +85,7 @@ async function connectEndpoint(evt?: Event): Promise<boolean> {
       break
     }
   }
-  
+
   const endpointParams = {
     endpointUrl: endpoint.endpointUrl.replace('//localhost:', `//${hostname}:`),
     securityPolicyUri: endpoint.securityPolicyUri,
@@ -97,7 +97,7 @@ async function connectEndpoint(evt?: Event): Promise<boolean> {
       secret: secret
     }
   }
-  
+
   // Save to local storage
   if (identity !== undefined && secret !== undefined) {
     window.localStorage.setItem('localUser', identity);
@@ -124,15 +124,15 @@ async function selectToken(eidx: number, tidx: number) {
 }
 
 const selected = computed(() => {
-  
+
   const idx = selectedEndpointIdx.value;
   const tidx = selectedTokenIdx.value;
   if ( idx === undefined  ) return false;
   if ( tidx === undefined ) return false;
-  
+
   if ( ! endpoints.value[idx] ) return false;
   if ( ! endpoints.value[idx]?.userIdentityTokens[tidx] ) return false;
-  
+
   const endpoint = endpoints.value[idx].userIdentityTokens[tidx]
   if ( endpoint.tokenType === OPCUA.UserTokenType.Anonymous ) return true;
   if ( endpoint.tokenType === OPCUA.UserTokenType.UserName && userName.value !== '' && userName.value !== '' ) return true;
@@ -158,15 +158,13 @@ onMounted( async () => {
   const localEndpointUrl = window.localStorage.getItem('localEndpointUrl') || false
   const localeidx = window.localStorage.getItem('localeidx') || false
   const localetidx = window.localStorage.getItem('localetidx') || false
-  
-  
+
   if (localUser && localPass && localEndpointUrl && localeidx && localetidx) {
     await fillSecurePolicies(endpointUrl.value);
-    
+
     // Try check if idx and tidx exists in endpoits url
     if (endpoints.value[localeidx]?.userIdentityTokens[localetidx]) {
       selectToken(parseInt(localeidx), parseInt(localetidx));
-      const radio = document.getElementById('e' + localeidx + 't' + localetidx) as HTMLInputElement 
       userName.value = localUser;
       password.value = localPass;
       const response = await connectEndpoint();
@@ -377,7 +375,7 @@ function clearLocalStorages() {
 
 <style lang="scss">
 .modal {
-  
+
   --bs-modal-bg: #24262B;
   --bs-border-color: #262323;
   --bs-modal-border-color: var(--bs-border-color-translucent);
@@ -406,7 +404,7 @@ function clearLocalStorages() {
     --bs-accordion-color: #FFFFFF;
     --bs-accordion-bg: #212529;
     --bs-accordion-btn-color: #FFFFFF;
-    
+
     --bs-accordion-btn-focus-border-color: #d4e5ff;
     --bs-accordion-btn-focus-box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     --bs-accordion-active-bg: #060606;

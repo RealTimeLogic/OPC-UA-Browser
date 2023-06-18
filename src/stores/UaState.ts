@@ -44,7 +44,7 @@ function opcuaWebSockURL() {
 
 export const uaApplication = defineStore('uaApplication', () => {
   const server = ref<UAServer | undefined>(undefined)
-  
+
   const webSockURL = ref(opcuaWebSockURL())
   const needAuth = ref(false)
   const root = ref<NodeType>({
@@ -74,14 +74,11 @@ export const uaApplication = defineStore('uaApplication', () => {
     try {
       onMessage(LogMessageType.Info, 'Connecting to websocket ' + webSockURL.value)
       const srv = new UAServer(webSockURL.value)
-      try {
-        await srv.connectWebSocket()
-      } catch (e: any) {
-        onMessage(LogMessageType.Error, e)
-        return
-      }
+      await srv.connectWebSocket()
+
       onMessage(LogMessageType.Info, 'Connecting to endpoint ' + endpoint.endpointUrl)
       await srv.hello(endpoint.endpointUrl)
+
       onMessage(LogMessageType.Info, 'Opening secure channel')
       await srv.openSecureChannel(
         360000,
@@ -89,14 +86,17 @@ export const uaApplication = defineStore('uaApplication', () => {
         endpoint.securityMode,
         endpoint.serverCertificate
       )
+
       onMessage(LogMessageType.Info, 'Creating session')
       await srv.createSession('opcua web session', 3600000)
+
       onMessage(LogMessageType.Info, 'Logging to OPCUA server')
       await srv.activateSession(
         endpoint.token.policyId,
         endpoint.token.identity,
         endpoint.token.secret
       )
+
       onMessage(LogMessageType.Info, 'Connected to OPCUA server')
       server.value = srv
       root.value.nodes = []

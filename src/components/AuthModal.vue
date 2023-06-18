@@ -87,7 +87,7 @@ async function connectEndpoint(): Promise<boolean> {
   }
 
   const endpointParams = {
-    endpointUrl: endpoint.endpointUrl.replace('//localhost:', `//${hostname}:`),
+    endpointUrl: endpoint.endpointUrl,
     securityPolicyUri: endpoint.securityPolicyUri,
     securityMode: endpoint.securityMode,
     serverCertificate: endpoint.serverCertificate,
@@ -124,20 +124,29 @@ async function selectToken(eidx: number, tidx: number) {
 }
 
 const selected = computed(() => {
-
   const idx = selectedEndpointIdx.value;
   const tidx = selectedTokenIdx.value;
-  if ( idx === undefined  ) return false;
-  if ( tidx === undefined ) return false;
+  if (idx === undefined)
+    return false;
 
-  if ( ! endpoints.value[idx] ) return false;
-  if ( ! endpoints.value[idx]?.userIdentityTokens[tidx] ) return false;
+  if (tidx === undefined)
+    return false;
+
+  if (!endpoints.value[idx])
+    return false;
+
+  if (!endpoints.value[idx]?.userIdentityTokens[tidx])
+    return false;
 
   const endpoint = endpoints.value[idx].userIdentityTokens[tidx]
-  if ( endpoint.tokenType === OPCUA.UserTokenType.Anonymous ) return true;
-  if ( endpoint.tokenType === OPCUA.UserTokenType.UserName && userName.value !== '' && userName.value !== '' ) return true;
-  if ( endpoint.tokenType === OPCUA.UserTokenType.Certificate && certificateFile.value !== undefined ) return true;
+  if (endpoint.tokenType === OPCUA.UserTokenType.Anonymous)
+    return true;
 
+  if (endpoint.tokenType === OPCUA.UserTokenType.UserName && userName.value !== '' && userName.value !== '')
+    return true;
+
+  if (endpoint.tokenType === OPCUA.UserTokenType.Certificate && certificateFile.value !== undefined)
+    return true;
 
   return false
 });

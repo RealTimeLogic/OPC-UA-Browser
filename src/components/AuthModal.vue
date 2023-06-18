@@ -1,31 +1,42 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, Ref, computed } from 'vue'
 import { OPCUA, UAServer } from '../utils/ua_server'
+import { Modal } from 'bootstrap';
 
-import '../../node_modules/bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap/dist/js/bootstrap.min'
 import { uaApplication, LogMessageType} from '../stores/UaState'
 
-export interface Props {
+export interface AuthProps {
   id: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<AuthProps>(), {
   id: 'auth-dialog'
 })
 
-const endpointUrl = ref('opc.tcp://localhost:4841')
-let endpoints: any = ref([])
-let selected = ref(false)
-let userName = ref('')
-let password = ref('')
-let certificateFile: File | undefined
 
-async function fillSecurePolicies(url: string) {
+const hostname = window.location.hostname || 'localhost';
+let endpointUrl = ref(`opc.tcp://${hostname}:4841`)
+let endpoints: any = ref([])
+let userName: Ref<string> = ref('')
+let password: Ref<string> = ref('')
+
+var selectedEndpointIdx: Ref<number | undefined> = ref(undefined)
+var selectedTokenIdx: Ref<number | undefined> = ref(undefined)
+let certificateFile: Ref<File | undefined> = ref(undefined)
+
+const modal: Ref<HTMLDivElement> | Ref<null> = ref(null)
+const connectButton: Ref<HTMLButtonElement> | Ref<null> = ref(null)
+
+async function fillSecurePolicies(url: string, newRequest: boolean = false) {
+  if (newRequest) {
+    clearLocalStorages();
+  }
+  window.localStorage.setItem('localEndpointUrl', url);
   try {
     endpoints.value = []
 
     const server = new UAServer(uaApplication().opcuaWebSockURL())
+
     await server.connectWebSocket()
     await server.hello(url)
     await server.openSecureChannel(10000, OPCUA.SecurePolicyUri.None, OPCUA.MessageSecurityMode.None)
@@ -54,16 +65,13 @@ async function fillSecurePolicies(url: string) {
   }
 }
 
-var selectedEndpointIdx: number | undefined
-var selectedTokenIdx: number | undefined
-
-async function connectEndpoint(evt: Event) {
-  if (selectedEndpointIdx == undefined || selectedTokenIdx == undefined) {
-    return
+async function connectEndpoint(): Promise<boolean> {
+  if (selectedEndpointIdx.value == undefined || selectedTokenIdx.value == undefined) {
+    return false
   }
 
-  const endpoint = endpoints.value[selectedEndpointIdx]
-  const tokenType = endpoint.userIdentityTokens[selectedTokenIdx]
+  const endpoint = endpoints.value[selectedEndpointIdx.value]
+  const tokenType = endpoint.userIdentityTokens[selectedTokenIdx.value]
 
   let secret
   let identity
@@ -73,7 +81,7 @@ async function connectEndpoint(evt: Event) {
       secret = password.value
       break
     case OPCUA.UserTokenType.Certificate: {
-      identity = await certificateFile?.text()
+      identity = await certificateFile.value?.text()
       break
     }
   }
@@ -90,30 +98,117 @@ async function connectEndpoint(evt: Event) {
     }
   }
 
+  // Save to local storage
+  if (identity !== undefined && secret !== undefined) {
+    window.localStorage.setItem('localUser', identity);
+    window.localStorage.setItem('localPass', secret);
+  }
+
   const endpointEvent = new CustomEvent('endpoint', {
     bubbles: true,
     detail: endpointParams
   })
 
-  evt.target?.dispatchEvent(endpointEvent)
+  connectButton.value?.dispatchEvent(endpointEvent)
+  // Close modal
+  const modalBS = Modal.getInstance(modal.value!)
+  modalBS?.hide()
+  return true
 }
 
 async function selectToken(eidx: number, tidx: number) {
-  selected.value = true
-  selectedEndpointIdx = eidx
-  selectedTokenIdx = tidx
+  selectedEndpointIdx.value = eidx
+  selectedTokenIdx.value = tidx
+  window.localStorage.setItem('localeidx', eidx.toString());
+  window.localStorage.setItem('localetidx', tidx.toString());
 }
+
+const selected = computed(() => {
+  const idx = selectedEndpointIdx.value;
+  const tidx = selectedTokenIdx.value;
+  if (idx === undefined)
+    return false;
+
+  if (tidx === undefined)
+    return false;
+
+  if (!endpoints.value[idx])
+    return false;
+
+  if (!endpoints.value[idx]?.userIdentityTokens[tidx])
+    return false;
+
+  const endpoint = endpoints.value[idx].userIdentityTokens[tidx]
+  if (endpoint.tokenType === OPCUA.UserTokenType.Anonymous)
+    return true;
+
+  if (endpoint.tokenType === OPCUA.UserTokenType.UserName && userName.value !== '' && userName.value !== '')
+    return true;
+
+  if (endpoint.tokenType === OPCUA.UserTokenType.Certificate && certificateFile.value !== undefined)
+    return true;
+
+  return false
+});
+
 
 async function onSelectedCert(evt: Event) {
   const file = (evt.target as HTMLInputElement).files?.item(0)
   if (file) {
-    certificateFile = file
+    certificateFile.value = file
   }
 }
+
+onMounted( async () => {
+
+  /** Automaticaly try get endpoints and login to last */
+  const localUser = window.localStorage.getItem('localUser') || false
+  const localPass = window.localStorage.getItem('localPass') || false
+  const localEndpointUrl = window.localStorage.getItem('localEndpointUrl') || false
+  const localeidx = window.localStorage.getItem('localeidx') || false
+  const localetidx = window.localStorage.getItem('localetidx') || false
+
+  if (localUser && localPass && localEndpointUrl && localeidx && localetidx) {
+    await fillSecurePolicies(endpointUrl.value);
+
+    // Try check if idx and tidx exists in endpoits url
+    if (endpoints.value[localeidx]?.userIdentityTokens[localetidx]) {
+      selectToken(parseInt(localeidx), parseInt(localetidx));
+      userName.value = localUser;
+      password.value = localPass;
+      const response = await connectEndpoint();
+      if (response) {
+        return true;
+      }
+    }
+  }
+  else {
+    // Clear local database
+    clearLocalStorages();
+  }
+  openModal();
+})
+
+// Open modal
+function openModal() {
+  const modalBS = Modal.getOrCreateInstance(modal.value!)
+  modalBS?.show()
+}
+
+// Clear all local storage
+function clearLocalStorages() {
+  window.localStorage.removeItem('localUser')
+  window.localStorage.removeItem('localPass')
+  window.localStorage.removeItem('localEndpointUrl')
+  window.localStorage.removeItem('localeidx')
+  window.localStorage.removeItem('localetidx')
+}
+
+
 </script>
 
 <template>
-  <div :id="props.id" class="modal" tabindex="-1">
+  <div :id="props.id" ref="modal" class="modal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
@@ -133,20 +228,20 @@ async function onSelectedCert(evt: Event) {
                 v-model="endpointUrl"
                 type="text"
                 class="form-control endpoint-url"
-                placeholder="opc.tcp://localhost:4841"
+                :placeholder="`opc.tcp://${hostname}:4841`"
                 aria-label="Endpoint URL"
                 aria-describedby="basic-addon1"
               />
               <button
                 type="button"
                 class="btn btn-secondary btn-sm fill-endpoints-button"
-                @click.prevent="fillSecurePolicies(endpointUrl)"
+                @click.prevent="fillSecurePolicies(endpointUrl, true)"
               >
                 Get endpoints
               </button>
             </div>
 
-            <div class="accordion accordion-flush" id="accordionFlushExample">
+            <div class="accordion accordion-flush" id="accordionFlush">
               <div
                 class="accordion-item flex-column endpoint-params"
                 v-for="(endpoint, eidx) in endpoints"
@@ -154,11 +249,12 @@ async function onSelectedCert(evt: Event) {
               >
                 <h2 class="accordion-header">
                   <button
-                    class="accordion-button collapsed fill-endpoints-button"
+                    class="accordion-button fill-endpoints-button"
                     type="button"
                     data-bs-toggle="collapse"
+                    :class="{collapsed : selectedEndpointIdx !== eidx}"
                     :data-bs-target="'#flush-collapse-' + eidx"
-                    aria-expanded="false"
+                    :aria-expanded="selectedEndpointIdx === eidx ? 'true' : 'false'"
                     :aria-controls="'flush-collapse-' + eidx"
                   >
                     {{ endpoint.encryptionName }} - {{ endpoint.modeName }}
@@ -168,7 +264,8 @@ async function onSelectedCert(evt: Event) {
                 <div
                   :id="'flush-collapse-' + eidx"
                   class="accordion-collapse collapse"
-                  data-bs-parent="#accordionFlushExample"
+                  :class="{show: selectedEndpointIdx === eidx}"
+                  data-bs-parent="#accordionFlush"
                 >
                   <div class="accordion-body">
                     <div
@@ -185,10 +282,11 @@ async function onSelectedCert(evt: Event) {
                           class="form-check-input"
                           type="radio"
                           :name="'tokentype-e' + eidx"
-                          :id="'anonymous-e' + eidx + '-t' + tidx"
+                          :id="'e' + eidx + '-t' + tidx"
+                          :checked="eidx == selectedEndpointIdx && tidx == selectedTokenIdx"
                           @change="selectToken(eidx, tidx)"
                         />
-                        <label class="form-check-label" :for="'anonymous-e' + eidx + '-t' + tidx">
+                        <label class="form-check-label" :for="'e' + eidx + '-t' + tidx">
                           Anonymous
                         </label>
                       </div>
@@ -201,10 +299,11 @@ async function onSelectedCert(evt: Event) {
                           class="form-check-input"
                           type="radio"
                           :name="'tokentype-e' + eidx"
-                          :id="'username-e' + eidx + '-t' + tidx"
+                          :id="'e' + eidx + '-t' + tidx"
+                          :checked="eidx == selectedEndpointIdx && tidx == selectedTokenIdx"
                           @change="selectToken(eidx, tidx)"
                         />
-                        <label class="form-check-label" :for="'username-e' + eidx + '-t' + tidx"
+                        <label class="form-check-label" :for="'e' + eidx + '-t' + tidx"
                           >Username</label
                         >
                         <div
@@ -217,6 +316,7 @@ async function onSelectedCert(evt: Event) {
                             placeholder="Username"
                             aria-label="Username"
                             v-model="userName"
+                            @keyup.enter="connectEndpoint"
                           />
                           <span class="input-group-text">@</span>
                           <input
@@ -225,6 +325,7 @@ async function onSelectedCert(evt: Event) {
                             placeholder="Password"
                             aria-label="Server"
                             v-model="password"
+                            @keyup.enter="connectEndpoint"
                           />
                         </div>
                       </div>
@@ -237,16 +338,17 @@ async function onSelectedCert(evt: Event) {
                           class="form-check-input"
                           type="radio"
                           :name="'tokentype-e' + eidx"
-                          :id="'certificate-e' + eidx + '-t' + tidx"
+                          :id="'e' + eidx + '-t' + tidx"
+                          :checked="eidx == selectedEndpointIdx && tidx == selectedTokenIdx"
                           @change="selectToken(eidx, tidx)"
                         />
-                        <label class="form-check-label" :for="'certificate-e' + eidx + '-t' + tidx">
+                        <label class="form-check-label" :for="'e' + eidx + '-t' + tidx">
                           <div class="mb-3">
-                            <label :for="'certificate-e' + eidx + '-t' + tidx" class="form-label"
+                            <label :for="'e' + eidx + '-t' + tidx" class="form-label"
                               >User certificate file</label
                             >
                             <input
-                              :name="'certificate-e' + eidx + '-t' + tidx"
+                              :name="'e' + eidx + '-t' + tidx"
                               class="form-control"
                               type="file"
                               id="certificateFile"
@@ -268,6 +370,7 @@ async function onSelectedCert(evt: Event) {
             type="button"
             class="btn btn-primary login-button"
             data-bs-dismiss="modal"
+            ref="connectButton"
             :disabled="!selected"
             @click="connectEndpoint"
           >
@@ -279,8 +382,46 @@ async function onSelectedCert(evt: Event) {
   </div>
 </template>
 
-<style>
-.endpoint-url {
-  flex-grow: 1;
+<style lang="scss">
+.modal {
+
+  --bs-modal-bg: #24262B;
+  --bs-border-color: #262323;
+  --bs-modal-border-color: var(--bs-border-color-translucent);
+  --bs-modal-box-shadow: 0 0.125rem 0.25rem rgba(255, 255, 255, 0.15);
+  --bs-modal-header-border-color: var(--bs-border-color);
+  --bs-modal-footer-border-color: var(--bs-border-color);
+
+  .btn-close {
+    filter: invert(1);
+  }
+
+  .endpoint-url {
+    flex-grow: 1;
+  }
+  .form-control {
+    background-color: #060606;
+    border-color: #262323;
+    color: #FFFFFF;
+    &:focus {
+      background-color: #060606;
+      border-color: #d4e5ff;
+      color: #FFFFFF;
+    }
+  }
+  .accordion  {
+    --bs-accordion-color: #FFFFFF;
+    --bs-accordion-bg: #212529;
+    --bs-accordion-btn-color: #FFFFFF;
+
+    --bs-accordion-btn-focus-border-color: #d4e5ff;
+    --bs-accordion-btn-focus-box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    --bs-accordion-active-bg: #060606;
+    --bs-accordion-active-color: #FFFFFF;
+    --bs-accordion-btn-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23FFFFFF'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    .accordion-item {
+      border-bottom: 3px solid #060606;
+    }
+  }
 }
 </style>

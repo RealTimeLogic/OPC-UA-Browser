@@ -3,15 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "engines" : {
-    "npm" : ">=9.5.1",
-    "node" : ">=16.16.0"
+    "npm" : ">=8.0.0",
+    "node" : ">=16.0.0"
   },
   "scripts": {
     "build": "run-p type-check lint build-only",
     "test": "run-p test:unit cypress:run test:e2e",
     "dev": "vite",
     "build-only": "vite build",
-    "dist": "node create-archive.js opcua-client.zip dist",
+    "create-zip": "vite build && node create-archive.js",
+    "dist": "node create-archive.js",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit --composite false",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",
+    "@types/bootstrap": "^5.2.6",
     "@types/jsdom": "^21.1.0",
     "@types/node": "^18.14.2",
     "@vitejs/plugin-vue": "^4.0.0",

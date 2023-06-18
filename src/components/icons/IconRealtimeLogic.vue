@@ -6,12 +6,4 @@
   </div>
 </template>
 <style scoped>
-.realtimelogic-logo {
-  height: 100%;
-}
-
-.logo-img {
-  width: auto;
-  height: 100%;
-}
 </style>

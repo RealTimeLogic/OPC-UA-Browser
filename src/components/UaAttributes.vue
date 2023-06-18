@@ -5,33 +5,56 @@ const props = defineProps(['attributes'])
 </script>
 
 <template>
-  <div>
-    <table class="table-node-attributes">
-      <tr v-for="(attr, index) in props.attributes" v-bind:key="index">
-        <td class="td-node-attribute td-node-attribute-name">{{ attr.name }}</td>
-        <td class="td-node-attribute td-node-attribute-value" style="text-align: left">
-          <pre>{{ attr.value }}</pre>
-        </td>
-      </tr>
-    </table>
+  <div class="div-node-attributes">
+    <div v-for="(attr, index) in props.attributes" class="node-attribute"  v-bind:key="index">
+      <div class="node-attribute-name">{{ attr.name }}</div>
+      <div class="node-attribute-value" style="text-align: left">
+        <pre>{{ attr.value }}</pre>
+      </div>
+    </div>
   </div>
 </template>
 
-<style>
+<style lang="scss">
 .table-node-attributes {
   width: 100%;
   /* border: 1px solid gray; */
   border-collapse: collapse;
 }
 
-.td-node-attribute {
-  border: 1px solid gray;
-  padding: 3px;
-}
-.td-node-attribute-name {
-  width: 20%;
+.node-attribute {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  padding: 10px 5px;
+  border-top: 1px solid lightgray;
+  transition: all ease 0.7s;
+  cursor: pointer;
+  &:hover {
+    background: #4f515c;
+  }
 }
 
-.td-node-attribute-value {
+.node-attribute-name {
+  border: 3px solid;
+  border-image-slice: 1;
+  border-image-source: linear-gradient(to top, transparent 0%, transparent 5%, #3084fa 15%, #87B6F9 85%, transparent 95%);
+  border-left: 0;
+  border-top: 0;
+  border-bottom: 0;
+  align-items: center;
+  justify-content: flex-start;
+  font-weight: bold;
+  display: grid;
+  grid-template-columns: 1fr;
+  word-break: break-all;
+}
+.node-attribute-value {
+  padding-left: 10px;
+  pre {
+    overflow: initial;
+    margin: 0;
+    font-size: 1em;
+    line-height: 1em;
+  }
 }
 </style>

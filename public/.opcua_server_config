@@ -45,11 +45,10 @@ return {
 
   -- Application URI should be equal to
   -- URI subject alternative name extention in the certificate
-  -- applicationUri="realtimelogic.com",
+  applicationUri="urn:RealTimeLogic:opcua:server",
 
   -- endpoint URL will be sent to clients.
   endpointUrl = "opc.tcp://localhost:4841",
-
 
   -- The port will server be listen to
   -- optional. Will be taken from endpointUrl if absent.
@@ -65,8 +64,8 @@ return {
 
   authenticate = authenticate,
 
-  certificate = ".basic128rsa15_server.pem",
-  key =         ".basic128rsa15_server.key",
+  certificate = ".opcua_server.pem",
+  key =         ".opcua_server.key",
 
   securePolicies = {
      -- Secure policy "None" provides no security at all.
@@ -107,28 +106,7 @@ return {
       issuedTokenType = nil,
       issuerEndpointUrl = nil,
       -- securityPolicyUri = ua.Types.SecurityPolicy.Basic128Rsa15
-    },
-    {
-      policyId = "azure",
-      tokenType = ua.Types.UserTokenType.IssuedToken,
-      issuedTokenType = ua.Types.IssuedTokenType.Azure,
-      issuerEndpointUrl = nil,
-      -- securityPolicyUri = ua.Types.SecurityPolicy.Basic128Rsa15
-    },
-    {
-      policyId = "jwt",
-      tokenType = ua.Types.UserTokenType.IssuedToken,
-      issuedTokenType = ua.Types.IssuedTokenType.JWT,
-      issuerEndpointUrl = nil,
-      -- securityPolicyUri = ua.Types.SecurityPolicy.Basic128Rsa15
-    },
-    {
-      policyId = "oauth2",
-      tokenType = ua.Types.UserTokenType.IssuedToken,
-      issuedTokenType = ua.Types.IssuedTokenType.OAuth2,
-      issuerEndpointUrl = nil,
-      -- securityPolicyUri = ua.Types.SecurityPolicy.Basic128Rsa15
-    },
+    }
   },
 
   logging = {

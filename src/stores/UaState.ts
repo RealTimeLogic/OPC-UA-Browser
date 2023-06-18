@@ -37,14 +37,14 @@ function opcuaWebSockURL() {
   const pos = window.location.pathname.lastIndexOf('/')
   const basePath = window.location.pathname.substring(0, pos)
   const host = window.location.hostname
-  const protocol = window.location.protocol.replace("https:", "wss:").replace("http:", "ws:")
-  const port = window.location.port
-
-  return protocol + '//' + host + ":" + port + basePath + '/opcua_client.lsp'
+  const protocol = window.location.protocol.replace("http", "ws")
+  const port = process.env.NODE_ENV === 'development' ? false : window.location.port
+  return `${protocol}//${host}${port ? ':'+port: ''}${basePath}/opcua_client.lsp`
 }
 
 export const uaApplication = defineStore('uaApplication', () => {
   const server = ref<UAServer | undefined>(undefined)
+
   const webSockURL = ref(opcuaWebSockURL())
   const needAuth = ref(false)
   const root = ref<NodeType>({
@@ -75,8 +75,10 @@ export const uaApplication = defineStore('uaApplication', () => {
       onMessage(LogMessageType.Info, 'Connecting to websocket ' + webSockURL.value)
       const srv = new UAServer(webSockURL.value)
       await srv.connectWebSocket()
+
       onMessage(LogMessageType.Info, 'Connecting to endpoint ' + endpoint.endpointUrl)
       await srv.hello(endpoint.endpointUrl)
+
       onMessage(LogMessageType.Info, 'Opening secure channel')
       await srv.openSecureChannel(
         360000,
@@ -84,16 +86,20 @@ export const uaApplication = defineStore('uaApplication', () => {
         endpoint.securityMode,
         endpoint.serverCertificate
       )
+
       onMessage(LogMessageType.Info, 'Creating session')
       await srv.createSession('opcua web session', 3600000)
+
       onMessage(LogMessageType.Info, 'Logging to OPCUA server')
       await srv.activateSession(
         endpoint.token.policyId,
         endpoint.token.identity,
         endpoint.token.secret
       )
+
       onMessage(LogMessageType.Info, 'Connected to OPCUA server')
       server.value = srv
+      root.value.nodes = []
     } catch (e: any) {
       onMessage(LogMessageType.Error, e)
     }

@@ -23,35 +23,53 @@ const selectNode: any = inject('selectNode')
   </div>
 </template>
 
-<style>
-.node-tree {
-  padding: 5px;
-  width: 100%;
+<style lang="scss">
+  
+  .node-children {
+    position: relative;
+    z-index: 1;
+    padding-left: 10px;
+    &::before {
+      content: '';
+      display: block;
+      position: absolute;
+      z-index: 2;
+      width: 2px;
+      height: 100%;
+      background: transparent;
+      top: 5px;
+      left: 10px;
+    }
+    &:hover > .node-row > .node-name {
+      background: #4f515c;
+    }
+  }
+
+  .node-row {
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+    justify-content: left;
+  }
+
+  .node-plus {
+    display: inline-block;
+    width: 14px;
+    height: 20px;
+    text-align: left;
+    vertical-align: middle;
+    padding: auto;
 }
 
-.node-row {
-  display: flex;
-  cursor: pointer;
-  align-items: center;
-  justify-content: left;
-}
+  .node-name {
+    display: inline-block;
+    padding: 2px 5px;
+    border-radius: 2px;
+  }
 
-.node-plus {
-  display: inline-block;
-  width: 14px;
-  height: 20px;
-  text-align: left;
-  vertical-align: middle;
-  padding: auto;
-}
-
-.node-name {
-  display: inline-block;
-}
-
-.node-name:hover {
-  background-color: rgb(225, 226, 226);
-}
+  .node-name:hover {
+    background-color: rgb(225, 255, 255);
+  }
 
 .node-children {
   padding-left: 10px;

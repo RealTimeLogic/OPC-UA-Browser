@@ -28,13 +28,18 @@ local function genOPCUACert(hostname, applicationUri, fileName)
 
   local isPosix = os.getenv("SHELL") ~= nil
   local homePath = os.getenv("HOME")
-  if not homePath then
+  local certsRoot
+  if homePath then
+    certsRoot = homePath.."/.mako"
+    keyPath = string.format("%s/%s.key", certsRoot, fileName)
+    certPath = string.format("%s/%s.pem", certsRoot, fileName)
+    else
     homePath = os.getenv("USERPROFILE")
-  end
+    certsRoot = homePath.."\\.mako"
+    keyPath = string.format("%s\\%s.key", certsRoot, fileName)
+    certPath = string.format("%s\\%s.pem", certsRoot, fileName)
+    end
 
-  local certsRoot = homePath.."/.mako"
-  keyPath = string.format("%s/%s.key", certsRoot, fileName)
-  certPath = string.format("%s/%s.pem", certsRoot, fileName)
   local diskIO = ba.openio("disk")
 
   if diskIO:open(keyPath) and diskIO:open(certPath) then
@@ -44,7 +49,6 @@ local function genOPCUACert(hostname, applicationUri, fileName)
   if isPosix then
     os.execute(string.format("mkdir -p %s", certsRoot))
   else
-    string.gsub(certsRoot, "/", "\\")
     os.execute(string.format("mkdir %s", certsRoot))
   end
 
@@ -63,7 +67,10 @@ local function genOPCUACert(hostname, applicationUri, fileName)
   local result, result1, result2 = os.execute(cmd)
   if not result then
     trace("Failed to create OPCUA certificates. Error: "..result2)
-    return
+    keyPath = "."..fileName..".key"
+    certPath = "."..fileName..".pem"
+    trace("Use embedded OPCUA certificates")
+    return certPath, keyPath, _ENV.app.io
   end
 
   return certPath, keyPath, diskIO
@@ -85,6 +92,7 @@ end
 
 local hostname = getHostName()
 
+trace("Create OPCUA client")
 -- Load and check client configuration file
 local clientConfig = _ENV.app.io:dofile(".opcua_client_config", _ENV)
 local certPath, keyPath, certIo = genOPCUACert(hostname, clientConfig.applicationUri, "opcua_client")
@@ -95,7 +103,7 @@ clientConfig.io = certIo
 checkConfig.client(clientConfig)
 _G.clientConfig = clientConfig
 
--- Start OPCUA server
+trace("Start OPCUA server")
 local serverConfig = require("loadconf").opc
 if not serverConfig then
   serverConfig = _ENV.app.io:dofile(".opcua_server_config", _ENV)
@@ -130,6 +138,8 @@ function onunload()
 end
 
 _G.uaServices = uaServer.services
+
+trace("OPCUA ready")
 
 local function waitForDebugger()
 

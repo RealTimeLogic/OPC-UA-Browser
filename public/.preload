@@ -1,7 +1,73 @@
 trace("Initializing OPCUA")
 local ua = require("opcua.api")
+local checkConfig = require("opcua.config")
 local sock = require("socket")
 local gettime=os.time
+
+local function getHostName()
+  local hostname
+  if os.execute() then
+    local f = _G.io.popen("hostname")
+    hostname = f:read("*a")
+  else
+    local sock = sock.connect("google.com", 80)
+    hostname = sock:peername()
+  end
+
+  hostname = string.gsub(hostname, "[\n\r]", "")
+  return hostname
+end
+
+local function genOPCUACert(hostname, applicationUri, fileName)
+  local keyPath = "."..fileName..".key"
+  local certPath = "."..fileName..".pem"
+
+  if not os.execute() then
+    return certPath, keyPath, _ENV.app.io
+  end
+
+  local isPosix = os.getenv("SHELL") ~= nil
+  local homePath = os.getenv("HOME")
+  if not homePath then
+    homePath = os.getenv("USERPROFILE")
+  end
+
+  local certsRoot = homePath.."/.mako"
+  keyPath = string.format("%s/%s.key", certsRoot, fileName)
+  certPath = string.format("%s/%s.pem", certsRoot, fileName)
+  local diskIO = ba.openio("disk")
+
+  if diskIO:open(keyPath) and diskIO:open(certPath) then
+    return certPath, keyPath
+  end
+
+  if isPosix then
+    os.execute(string.format("mkdir -p %s", certsRoot))
+  else
+    string.gsub(certsRoot, "/", "\\")
+    os.execute(string.format("mkdir %s", certsRoot))
+  end
+
+  local t = {
+    certsRoot=certsRoot,
+    keyPath = keyPath,
+    certPath = certPath,
+    applicationUri = applicationUri,
+    hostname = hostname,
+  }
+
+  local cmdPattern =
+    'openssl req -newkey rsa:2048 -x509 -days 3650 -nodes -keyout "${keyPath}" -out "${certPath}" -subj "/CN=${hostname}/O=RealtimeLogic" -addext "subjectAltName = DNS:${hostname},URI:${applicationUri}" -addext "keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement" -addext "extendedKeyUsage = serverAuth, clientAuth" 2>/dev/null'
+
+  local cmd = string.gsub(cmdPattern, "%${(%w+)}", t)
+  local result, result1, result2 = os.execute(cmd)
+  if not result then
+    trace("Failed to create OPCUA certificates. Error: "..result2)
+    return
+  end
+
+  return certPath, keyPath, diskIO
+end
 
 -- Connect logging traces
 -- Logging level is controlled by config file.
@@ -17,16 +83,32 @@ ua.trace.err = function(msg)
   tracep(false, 0, msg)
 end
 
+local hostname = getHostName()
+
 -- Load and check client configuration file
 local clientConfig = _ENV.app.io:dofile(".opcua_client_config", _ENV)
-local checkConfig = require("opcua.config")
+local certPath, keyPath, certIo = genOPCUACert(hostname, clientConfig.applicationUri, "opcua_client")
+clientConfig.certificate = certPath
+clientConfig.key = keyPath
+clientConfig.io = certIo
+
 checkConfig.client(clientConfig)
 _G.clientConfig = clientConfig
 
 -- Start OPCUA server
+local serverConfig = require("loadconf").opc
+if not serverConfig then
+  serverConfig = _ENV.app.io:dofile(".opcua_server_config", _ENV)
+end
 
-local serverConfig = io:dofile(".opcua_server_config", _ENV)
+local certPath, keyPath, certIo = genOPCUACert(hostname, serverConfig.applicationUri, "opcua_server")
+serverConfig.endpointUrl = string.format("opc.tcp://%s:%d", hostname, serverConfig.listenPort)
+serverConfig.certificate = certPath
+serverConfig.key = keyPath
+serverConfig.io = certIo
+
 checkConfig.server(serverConfig)
+
 local ok
 ok, uaServer = pcall(ua.newServer, serverConfig)
 if not ok then

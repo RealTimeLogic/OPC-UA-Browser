@@ -1,6 +1,14 @@
 return {
   io = _ENV.app.io,
   bufSize = 65536,
+  applicationName="RealTimeLogic OPCUA Client",
+
+  -- Application URI should be equal to
+  -- URI subject alternative name extention in the certificate
+  applicationUri="urn:RealTimeLogic:opcua:client",
+
+  certificate = ".opcua_client.pem",
+  key =         ".opcua_client.key",
 
   securePolicies ={
     { -- #1
@@ -9,8 +17,6 @@ return {
     { -- #2
       securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
       securityMode = {2, 3}, -- Sign + SignAndEncrypt,
-      certificate = ".basic128rsa15_client.pem",
-      key =         ".basic128rsa15_client.key",
     }
   },
 

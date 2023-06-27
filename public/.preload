@@ -20,57 +20,59 @@ local function getHostName()
   return hostname
 end
 
-local function genOPCUACert(genFunc, hostname, applicationUri, fileName)
+local function getDefaultCert(fileName)
+  trace("Use embedded OPCUA certificates")
   local keyPath = "."..fileName..".key"
   local certPath = "."..fileName..".pem"
-  local diskIO = ba.openio("disk")
-  if not diskIO then
-    return certPath, keyPath, _ENV.app.io
+  return certPath, keyPath, _ENV.app.io
+end
+
+local function writeFile(fio, fileName, data)
+  local f, err = fio:open(fileName, "w")
+  if err then
+    trace(string.format("Failed to create file '%s': "..err))
+    return false
   end
 
-  local homePath = os.getenv("HOME") or os.getenv("USERPROFILE")
-  local certsRoot
-  if string.sub(homePath, 1, 1) == '/' then
-    certsRoot = homePath.."/.mako"
-    keyPath = string.format("%s/%s.key", certsRoot, fileName)
-    certPath = string.format("%s/%s.pem", certsRoot, fileName)
-  else
-    certsRoot = "\\"..homePath.."\\.mako"
-    certsRoot = string.gsub(certsRoot, "\\", "/")
-    certsRoot = string.gsub(certsRoot, ":", "")
-
-    keyPath = string.format("%s\\%s.key", certsRoot, fileName)
-    keyPath = string.gsub(keyPath, "\\", "/")
-
-    certPath = string.format("%s\\%s.pem", certsRoot, fileName)
-    certPath = string.gsub(certPath, "\\", "/")
-  end
-
-  local err = diskIO:mkdir(certsRoot)
-
-  if diskIO:open(keyPath) and diskIO:open(certPath) then
-    return certPath, keyPath, diskIO
-  end
-
-  local cert, key = genFunc(hostname, applicationUri, "urn:opcua.com:opcua:client")
-
-  local f, err = diskIO:open(certPath, "w")
-  local result = f:write(cert)
-  f:close()
-
-  f, err = diskIO:open(keyPath, "w")
-  result = f:write(key)
-  f:close()
-
+  local result = f:write(data)
   if not result then
-    trace("Failed to create OPCUA certificates. Error: "..result2)
-    keyPath = "."..fileName..".key"
-    certPath = "."..fileName..".pem"
-    trace("Use embedded OPCUA certificates")
-    return certPath, keyPath, _ENV.app.io
+    trace(string.format("Failed to save file '%s'." , fileName))
+    return getDefaultCert(fileName)
   end
 
-  return certPath, keyPath, diskIO
+  f:close()
+
+  return true
+end
+
+local function genOPCUACert(genFunc, hostname, applicationUri, fileName)
+  local hio = ba.openio("home")
+  if not hio then
+    trace("Cannot open homeio")
+    return getDefaultCert(fileName)
+  end
+
+  if not hio:stat("cert") and not hio:mkdir("cert") then
+    trace("Cannot create directory "..hio:realpath("cert"))
+    return getDefaultCert(fileName)
+  end
+
+  local cio = ba.mkio(hio, "cert")
+  local keyName = fileName..".key"
+  local certName = fileName..".pem"
+  local keyHandle = cio:open(keyName)
+  local certHandle = cio:open(certName)
+  if not keyHandle or not certHandle then
+    local cert, key = genFunc(hostname, applicationUri)
+    if not writeFile(cio, certName, cert) then
+      return getDefaultCert(fileName)
+    end
+    if not writeFile(cio, keyName, key)then
+      return getDefaultCert(fileName)
+    end
+  end
+
+  return cio:realpath(certName), cio:realpath(keyName)
 end
 
 -- Connect logging traces

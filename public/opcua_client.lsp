@@ -27,14 +27,14 @@ end
 
 local function opcUaClient(wsSock)
    local ok,uaClient
+   local js = require("JSONS").create({}, wsSock)
    while true do
-      local data,err = wsSock:read()
-      if not data then
-         tracep(false, 4, "WS close:" ,err)
+      local request, err = js:get()
+      if not request then
+         tracep(false, 1, "ERROR: Failed to read Request: ", err)
          break
       end
 
-      local request = ba.json.decode(data)
       if not request.id then
          tracep(false, 1, "ERROR: Request has no 'id': ", data)
          break

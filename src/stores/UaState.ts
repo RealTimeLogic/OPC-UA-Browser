@@ -34,11 +34,25 @@ export type UaStateType = {
 }
 
 function opcuaWebSockURL() {
+  // when we a in defelopment mode then
+  // web page is running inside vite dev server
+  // and the same time backed is running with mako: mako in linux usually
+  // runs on port 9357 and in windows on port 80
+  // if you have different ports then fix following URIes
+  if (process.env.NODE_ENV === 'development') {
+    const platform = navigator.userAgent.toLocaleLowerCase()
+    if (platform.indexOf("linux") >= 0) {
+      return 'ws://localhost:9357/opcua_client.lsp'
+    } else if (platform.indexOf("windows") >= 0){
+      return 'ws://localhost/opcua_client.lsp'
+    }
+  }
+
   const pos = window.location.pathname.lastIndexOf('/')
   const basePath = window.location.pathname.substring(0, pos)
   const host = window.location.hostname
   const protocol = window.location.protocol.replace("http", "ws")
-  const port = process.env.NODE_ENV === 'development' ? false : window.location.port
+  const port = window.location.port
   return `${protocol}//${host}${port ? ':'+port: ''}${basePath}/opcua_client.lsp`
 }
 

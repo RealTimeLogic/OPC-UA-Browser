@@ -69,7 +69,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="opcua-client-app" @endpoint.prevent="connectServer" >
+  <div class="opcua-browser-app" @endpoint.prevent="connectServer" >
     <AuthModal id="auth-dialog" />
 
 
@@ -104,7 +104,7 @@ onMounted(() => {
 
 <style lang="scss">
 
-.opcua-client-app {
+.opcua-browser-app {
   display: flex;
   flex-direction: column;
    header {

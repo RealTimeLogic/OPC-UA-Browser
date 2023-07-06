@@ -5,9 +5,9 @@ const path = require("path")
 
 // create a file to stream archive data to.
 console.log('||====================================================================||');
-console.log('Starting to create opcua-client.zip archive from `/dist` folder...');
+console.log('Starting to create opcua-browser.zip archive from `/dist` folder...');
 
-const archivePath = path.join(__dirname, process.argv.length< 3 ? "opcua-client.zip" : process.argv[2])
+const archivePath = path.join(__dirname, process.argv.length< 3 ? "opcua-browser.zip" : process.argv[2])
 const output = fs.createWriteStream(archivePath)
 const archive = archiver('zip', {
   zlib: { level: 9 } // Sets the compression level.
@@ -17,7 +17,7 @@ const archive = archiver('zip', {
 // 'close' event is fired only when a file descriptor is involved
 output.on('close', function() {
   console.log('Zip file created: ' + archive.pointer() + ' total bytes');
-  console.log('Successfully created opcua-client.zip archive from dist folder.');
+  console.log('Successfully created opcua-browser.zip archive from dist folder.');
 });
 
 // This event is fired when the data source is drained no matter what was the data source.

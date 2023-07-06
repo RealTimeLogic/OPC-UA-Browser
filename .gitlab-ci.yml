@@ -17,7 +17,7 @@ build:
     - npm run dist
   artifacts:
     paths:
-      - opcua-client.zip
+      - opcua-browser.zip
 
 push-docker-image:
   extends: .docker-image

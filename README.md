@@ -20,7 +20,7 @@ clients.
 To run this tool, you must use the Mako Server as the [OPC UA foundation](https://realtimelogic.com/ba/opcua/index.html). Begin by downloading and installing the Mako Server specific to your platform. You can find the download and installation instructions [here](https://makoserver.net/download/overview/)
 
 
-Next, download the [latest OPC UA release](https://github.com/RealTimeLogic/opcua-client/releases). Once downloaded, place the archive in the same folder as the Mako Server executable.
+Next, download the [latest OPC UA release](https://github.com/RealTimeLogic/OPC-UA-Browser/releases). Once downloaded, place the archive in the same folder as the Mako Server executable.
 
 To run the application, follow these steps:
 
@@ -34,7 +34,7 @@ To run the application, follow these steps:
 
    Start the tool with default settings as follows:
    ```
-      >mako -l::opcua-client.zip
+      >mako -l::opcua-browser.zip
 
       Mako Server. Version 3.9
       BAS lib 5453. Build date: Jun  6 2023
@@ -47,7 +47,7 @@ To run the application, follow these steps:
       SharkSSL server listening on IPv6 port 443
       SharkSSL server listening on IPv4 port 443
       1: Initializing OPCUA
-      Loading opcua-client.zip as "root application" : ok
+      Loading opcua-browser.zip as "root application" : ok
    ```
 
 3. To access the OPC UA Web Client, open a web browser and enter the following URL: http://localhost:portno
@@ -95,7 +95,7 @@ users = {
 By default, the Mako server reads the configuration file 'mako.conf'. If you want to use a specific configuration file, you can use the following command line:
 
 ```
->mako -c mako.conf -l::opcua-client.zip
+>mako -c mako.conf -l::opcua-browser.zip
 ```
 
 For more information on the configuration file, please refer to the [Mako server's configuration file](https://realtimelogic.com/ba/doc/?url=Mako.html#cfgfile)
@@ -115,7 +115,7 @@ npm install
 npm run create-zip
 ```
 
-The second command should produce `opcua-client.zip`
+The second command should produce `opcua-browser.zip`
 
 # Additional commands you may find helpful.
 

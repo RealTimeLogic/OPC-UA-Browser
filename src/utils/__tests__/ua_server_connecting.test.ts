@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import { UAServer, OPCUA } from '../ua_server'
+import * as OPCUA from 'opcua-client'
+import { RtlProxyClient as UAServer } from '../ua_server'
+
 
 const WebSockURL = 'ws://localhost/opcua_client.lsp'
 const EndpointURL = 'opc.tcp://localhost:4841'
@@ -8,45 +10,45 @@ const EndpointURL = 'opc.tcp://localhost:4841'
 describe('Websocket connecting', async () => {
   it('Connects to websocket', async () => {
     const server = new UAServer(WebSockURL)
-    const connectResult = await server.connectWebSocket()
+    const connectResult = await server.hello(EndpointURL)
     expect(connectResult).to.equal(server)
 
-    const disconnectResult = await server.disconnectWebSocket()
+    const disconnectResult = await server.disconnect()
     expect(disconnectResult).to.equal(server)
   })
 
   it('second connect not possible', async () => {
     const server = new UAServer(WebSockURL)
-    const connectResult = await server.connectWebSocket()
+    const connectResult = await server.connect()
     expect(connectResult).to.equal(server)
 
-    await expect(server.connectWebSocket()).rejects.toThrowError(new Error('already connected'))
+    await expect(server.connect()).rejects.toThrowError(new Error('already connected'))
 
-    const disconnectResult = await server.disconnectWebSocket()
+    const disconnectResult = await server.disconnect()
     expect(disconnectResult).to.equal(server)
   })
 
   it('second disconnect not possible', async () => {
     const server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
-    await server.disconnectWebSocket()
-    await expect(server.disconnectWebSocket()).rejects.toThrowError(
+    await server.connect()
+    await server.disconnect()
+    await expect(server.connect()).rejects.toThrowError(
       new Error('already disconnected')
     )
   })
 
   it('Disconnect callback called', async () => {
-    const server = new UAServer(WebSockURL)
-
     let error = undefined
     const onDisconnect = (e: Error) => {
       error = e
     }
 
-    const connectResult = await server.connectWebSocket(onDisconnect)
+    const server = new UAServer(WebSockURL, onDisconnect)
+
+    const connectResult = await server.connect()
     expect(connectResult).to.equal(server)
 
-    server.WebSock?.close()
+    server.disconnect()
 
     expect(error).not.toEqual(null)
   })
@@ -57,11 +59,11 @@ describe('Connect to OPCUA endpoint', async () => {
 
   beforeEach(async () => {
     server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
   })
 
   afterEach(async () => {
-    await server.disconnectWebSocket()
+    await server.disconnect()
   })
 
   it('Connect/disconnect OPCUA server', async () => {
@@ -78,7 +80,7 @@ describe('Connect to OPCUA endpoint', async () => {
 describe('OpenSecureChannel SecurePolicy None', async () => {
   it('OpenSecure channel without connect', async () => {
     const server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
     const channel = server.openSecureChannel(
       3600000,
       OPCUA.SecurePolicyUri.None,
@@ -87,12 +89,12 @@ describe('OpenSecureChannel SecurePolicy None', async () => {
 
     expect(channel).rejects.toThrowError()
 
-    await server.disconnectWebSocket()
+    await server.disconnect()
   })
 
   it('Open/Close secure channel', async () => {
     const server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
     await server.hello(EndpointURL)
     const channel = await server.openSecureChannel(
       3600000,
@@ -105,14 +107,14 @@ describe('OpenSecureChannel SecurePolicy None', async () => {
     const closeChannel = await server.closeSecureChannel()
     expect(closeChannel).not.toBeDefined()
 
-    await server.disconnectWebSocket()
+    await server.disconnect()
   })
 })
 
 describe('GetEndpoints', async () => {
   it('Works', async () => {
     const server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
     await server.hello(EndpointURL)
     await server.openSecureChannel(
       3600000,
@@ -124,12 +126,12 @@ describe('GetEndpoints', async () => {
     expect(endpoints).to.toBeDefined()
 
     await server.closeSecureChannel()
-    await server.disconnectWebSocket()
+    await server.disconnect()
   })
 
   it('Open Secure Channel all modes', async () => {
     const server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
     await server.hello(EndpointURL)
     await server.openSecureChannel(
       3600000,
@@ -138,7 +140,7 @@ describe('GetEndpoints', async () => {
     )
     const resp: any = await server.getEndpoints()
     await server.closeSecureChannel()
-    await server.disconnectWebSocket()
+    await server.disconnect()
 
     for (let i = 0; i < resp.endpoints.length; i++) {
       const endpoint: any = resp.endpoints[i]
@@ -148,7 +150,7 @@ describe('GetEndpoints', async () => {
         'Can connect to: ' + endpoint.securityPolicyUri + ' mode ' + endpoint.securityMode,
         async () => {
           const server = new UAServer(WebSockURL)
-          await server.connectWebSocket()
+          await server.connect()
           await server.hello(EndpointURL)
 
           const channel = await server.openSecureChannel(
@@ -160,7 +162,7 @@ describe('GetEndpoints', async () => {
 
           expect(channel).to.toBeDefined()
           await server.closeSecureChannel()
-          await server.disconnectWebSocket()
+          await server.disconnect()
         }
       )
     }
@@ -171,7 +173,7 @@ describe('Session', async () => {
   let server: UAServer
   beforeEach(async () => {
     server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
     await server.hello(EndpointURL)
     await server.openSecureChannel(
       3600000,
@@ -182,7 +184,7 @@ describe('Session', async () => {
 
   afterEach(async () => {
     await server.closeSecureChannel()
-    await server.disconnectWebSocket()
+    await server.disconnect()
   })
 
   it('CreateSession', async () => {
@@ -200,7 +202,7 @@ describe('Authentication', async () => {
 
   beforeEach(async () => {
     server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
     await server.hello(EndpointURL)
     await server.openSecureChannel(
       3600000,
@@ -219,7 +221,7 @@ describe('Authentication', async () => {
   afterEach(async () => {
     await server.closeSession()
     await server.closeSecureChannel()
-    await server.disconnectWebSocket()
+    await server.disconnect()
   })
 
   it('Anonymous', async () => {

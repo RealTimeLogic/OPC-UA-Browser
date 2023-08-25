@@ -47,16 +47,20 @@ return {
   -- URI subject alternative name extention in the certificate
   applicationUri="urn:RealTimeLogic:opcua:server",
 
-  -- endpoint URL will be sent to clients.
-  endpointUrl = "opc.tcp://localhost:4841",
+  endpoints = {
+    {
+      -- endpoint URL will be sent to clients.
+      endpointUrl = "opc.tcp://localhost:4841/opcua/",
 
-  -- The port will server be listen to
-  -- optional. Will be taken from endpointUrl if absent.
-  listenPort = 4841,
+      -- The port will server be listen to
+      -- optional. Will be taken from endpointUrl if absent.
+      listenPort = 4841,
 
-  -- The host name will server be bind to
-  -- optional. Will be taken from endpointUrl if absent.
-  listenAddress="*",
+      -- The host name will server be bind to
+      -- optional. Will be taken from endpointUrl if absent.
+      listenAddress="*",
+    }
+  },
 
   -- Size of buffer is allocated for one chunk.
   -- Minimum size 8192.

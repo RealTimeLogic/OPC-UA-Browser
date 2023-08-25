@@ -2,9 +2,9 @@
   "name": "opcua-browser",
   "version": "1.0.0",
   "private": true,
-  "engines" : {
-    "npm" : ">=8.0.0",
-    "node" : ">=16.0.0"
+  "engines": {
+    "npm": ">=8.0.0",
+    "node": ">=16.0.0"
   },
   "scripts": {
     "build": "run-p type-check lint build-only",
@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "bootstrap": "^5.2.3",
+    "opcua-client": "file:opcua-client-1.0.0-alpha.tgz",
     "pinia": "^2.0.32",
     "vue": "^3.2.47",
     "vue-router": "^4.1.6"

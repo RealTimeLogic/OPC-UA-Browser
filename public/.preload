@@ -109,7 +109,21 @@ if not serverConfig then
 end
 
 local certPath, keyPath, certIo = genOPCUACert(init.genServerCertificate, hostname, serverConfig.applicationUri, "opcua_server")
-serverConfig.endpointUrl = string.format("opc.tcp://%s:%d", hostname, serverConfig.listenPort)
+serverConfig.httpDirName = "opcua"
+
+-- Insert HTTP endpoints
+table.insert(serverConfig.endpoints,
+{
+  -- endpoint URL will be sent to clients.
+  endpointUrl = string.format("http://localhost:%d/opcua/", mako.port)
+})
+
+table.insert(serverConfig.endpoints,
+{
+  -- endpoint URL will be sent to clients.
+  endpointUrl = string.format("http://localhost:%d/opcua/", mako.sslport)
+})
+
 serverConfig.certificate = certPath
 serverConfig.key = keyPath
 serverConfig.io = certIo
@@ -138,18 +152,3 @@ end
 _G.uaServices = uaServer.services
 
 trace("OPCUA ready")
-
-local function waitForDebugger()
-
-   -- Load the Lua Debug Monitor "ldbgmon" and call the connect() method
-   -- client=false -> bind (act as server). Default is to act as client.
-   if require"ldbgmon".connect{client=false} then
-      trace"The debugger should stop the program on this line"
-      -- Hit F5 to continue
-   else
-      trace"Debugger connection failed"
-   end
-
-end -- waitForDebugger
-
---waitForDebugger()

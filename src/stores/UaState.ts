@@ -1,15 +1,16 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { UAServer, OPCUA } from '../utils/ua_server'
+import { createServer} from '../utils/ua_server.js'
+import * as OPCUA from "opcua-client"
 
 export type AttributeValueType = {
   name: string
-  attributeId: number
-  value: any
+  attributeId: OPCUA.AttributeIds
+  value: OPCUA.DataValue
 }
 
 export type NodeType = {
-  nodeid: string
+  nodeid: OPCUA.NodeId
   label: string
   nodes: NodeType[]
 }
@@ -26,29 +27,43 @@ export type LogEntryType = {
 }
 
 export type UaStateType = {
-  server: UAServer | undefined
+  server: OPCUA.UAServer | undefined
   webSockURL: string
   root: NodeType
   needAuth: boolean
   messages: LogEntryType[]
 }
 
-function opcuaWebSockURL() {
+function opcuaWebSockURL(): string {
+  // when we a in defelopment mode then
+  // web page is running inside vite dev server
+  // and the same time backed is running with mako: mako in linux usually
+  // runs on port 9357 and in windows on port 80
+  // if you have different ports then fix following URIes
+  if (process.env.NODE_ENV === 'development') {
+    const platform = navigator.userAgent.toLocaleLowerCase()
+    if (platform.indexOf("linux") >= 0) {
+      return 'ws://localhost:9357/opcua_client.lsp'
+    } else if (platform.indexOf("windows") >= 0){
+      return 'ws://localhost/opcua_client.lsp'
+    }
+  }
+
   const pos = window.location.pathname.lastIndexOf('/')
   const basePath = window.location.pathname.substring(0, pos)
   const host = window.location.hostname
   const protocol = window.location.protocol.replace("http", "ws")
-  const port = process.env.NODE_ENV === 'development' ? false : window.location.port
+  const port = window.location.port
   return `${protocol}//${host}${port ? ':'+port: ''}${basePath}/opcua_client.lsp`
 }
 
 export const uaApplication = defineStore('uaApplication', () => {
-  const server = ref<UAServer | undefined>(undefined)
+  const server = ref<OPCUA.UAServer | undefined>(undefined)
 
   const webSockURL = ref(opcuaWebSockURL())
   const needAuth = ref(false)
   const root = ref<NodeType>({
-    nodeid: 'i=84',
+    nodeid: new OPCUA.NodeId('i=84'),
     label: 'RootFolder',
     nodes: []
   })
@@ -73,8 +88,9 @@ export const uaApplication = defineStore('uaApplication', () => {
   async function connect(endpoint: any) {
     try {
       onMessage(LogMessageType.Info, 'Connecting to websocket ' + webSockURL.value)
-      const srv = new UAServer(webSockURL.value)
-      await srv.connectWebSocket()
+
+      let srv = createServer(endpoint.endpointUrl, uaApplication().opcuaWebSockURL())
+      await srv.connect()
 
       onMessage(LogMessageType.Info, 'Connecting to endpoint ' + endpoint.endpointUrl)
       await srv.hello(endpoint.endpointUrl)
@@ -117,7 +133,7 @@ export const uaApplication = defineStore('uaApplication', () => {
       }
 
       onMessage(LogMessageType.Info, 'Browsing nodeID ' + node.nodeid)
-      const resp: any = await server.value.browse(node.nodeid)
+      const resp: any = await server.value.browse(node.nodeid.toString())
       resp.results.forEach((result: any) => {
         result.references.forEach((ref: any) => {
           node.nodes.push({

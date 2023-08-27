@@ -1,45 +1,4 @@
-local ua = require("opcua.api")
-local makoConf=require"loadconf"
-if makoConf == nil or makoConf.users == nil then
-  makoConf = {
-    users = {
-      admin = "admin"
-    }
-  }
-end
-
-local function authenticate(tokenType, token, user)
-  local accessPermitted = false
-  if tokenType == "anonymous" then
-    tracep(false, 5, "Anonymous token")
-    accessPermitted = true
-  elseif tokenType == "username" then
-    tracep(false, 5, string.format("Checking user name '%s' and password.", user))
-    local password = makoConf.users[user]
-    if password ~= nil and token == password then
-      accessPermitted = true
-    end
-  elseif tokenType == "x509" then
-    tracep(false, 5, "Checking user certificate.")
-    local cert = ba.parsecert(token)
-    -- if cert ~= nil and makoConf.users[cert.subject.commonname] ~= nil then
-    if cert ~= nil then
-      tracep(false, 5, "x509 certificate commom name: ", cert.subject.commonname)
-      accessPermitted = true
-    end
-  end
-
-  if accessPermitted then
-    tracep(false, 5, "Access permitted")
-  else
-    tracep(false, 5, "Access denied")
-  end
-
-  return accessPermitted
-end
-
 return {
-  io = _ENV.app.io,
   -- Application name
   applicationName="RealTimeLogic OPCUA Server",
 
@@ -47,83 +6,92 @@ return {
   -- URI subject alternative name extention in the certificate
   applicationUri="urn:RealTimeLogic:opcua:server",
 
-  -- endpoint URL will be sent to clients.
-  endpointUrl = "opc.tcp://localhost:4841",
+  endpoints = {
+    {
+      -- endpoint URL will be sent to clients.
+      endpointUrl = "opc.tcp://",
 
-  -- The port will server be listen to
-  -- optional. Will be taken from endpointUrl if absent.
-  listenPort = 4841,
+      -- The port will server be listen to
+      -- optional. Will be taken from endpointUrl if absent.
+      listenPort = 4841,
 
-  -- The host name will server be bind to
-  -- optional. Will be taken from endpointUrl if absent.
-  listenAddress="*",
+      -- The host name will server be bind to
+      -- optional. Will be taken from endpointUrl if absent.
+      listenAddress="*",
+    },
+    {
+      -- endpoint URL will be sent to clients.
+      endpointUrl = "opc.http://"
+    },
+    {
+      -- endpoint URL will be sent to clients.
+      endpointUrl = "opc.https://"
+    }
+  },
+
+  httpDirName = "opcua",
 
   -- Size of buffer is allocated for one chunk.
   -- Minimum size 8192.
-  bufSize = 16386,
-
-  authenticate = authenticate,
-
-  certificate = ".opcua_server.pem",
-  key =         ".opcua_server.key",
+  bufSize = 65536,
 
   securePolicies = {
-     -- Secure policy "None" provides no security at all.
-     -- if you need some security then remove this element from array
-     { -- #1
-      securityPolicyUri = ua.Types.SecurityPolicy.None,
-     },
+    -- Secure policy "None" provides no security at all.
+    -- if you need some security then remove this element from array
+    { -- #1
+      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#None", -- ua.Types.SecurityPolicy.None
+    },
 
-     -- secure policy Basic128Rsa15 can have key length 1024 or 2048 bits length
-     -- deprecated in the OPC-UA standard.
-     { -- #2
-       securityPolicyUri = ua.Types.SecurityPolicy.Basic128Rsa15,
-       securityMode = {
-         ua.Types.MessageSecurityMode.Sign,
-         ua.Types.MessageSecurityMode.SignAndEncrypt,
-       },
-     }
+    -- secure policy Basic128Rsa15 can have key length 1024 or 2048 bits length
+    -- deprecated in the OPC-UA standard.
+    { -- #2
+      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15", -- ua.Types.SecurityPolicy.Basic128Rsa15
+      securityMode = {
+        2, -- ua.Types.MessageSecurityMode.Sign
+        3, -- ua.Types.MessageSecurityMode.SignAndEncrypt
+      },
+    }
   },
 
   userIdentityTokens = {
     {
       policyId = "anonymous",
-      tokenType = ua.Types.UserTokenType.Anonymous,
+      tokenType = 0, -- ua.Types.UserTokenType.Anonymous
       issuedTokenType = nil,
       issuerEndpointUrl = nil,
       securityPolicyUri = nil
     },
     {
       policyId = "username_Basic128Rsa15",
-      tokenType = ua.Types.UserTokenType.UserName,
+      tokenType = 1, -- ua.Types.UserTokenType.UserName
       issuedTokenType = nil,
       issuerEndpointUrl = nil,
-      securityPolicyUri = ua.Types.SecurityPolicy.Basic128Rsa15
+      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15" -- ua.Types.SecurityPolicy.Basic128Rsa15
     },
     {
       policyId = "x509",
-      tokenType = ua.Types.UserTokenType.Certificate,
+      tokenType = 2, -- ua.Types.UserTokenType.Certificate
       issuedTokenType = nil,
       issuerEndpointUrl = nil,
-      -- securityPolicyUri = ua.Types.SecurityPolicy.Basic128Rsa15
+      -- securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15" -- ua.Types.SecurityPolicy.Basic128Rsa15
     }
   },
 
   logging = {
-     socket = {
-       dbgOn = true,  -- debug logs of socket
-       infOn = true,  -- information logs about sockets
-       errOn = true,  -- Errors on sockets
-     },
-     binary = {
-       dbgOn = true,  -- Debugging traces about binary protocol. Print encoded message hex data.
-       infOn = true,  -- Information traces about binary protocol
-       errOn = true,  -- Errors in binary protocol
-     },
-     services = {
-       dbgOn = true,  -- Debugging traces about UA services work
-       infOn = true,  -- Informations traces
-       errOn = true,  -- Errors
-     }
+    socket = {
+      dbgOn = true,  -- debug logs of socket
+      infOn = true,  -- information logs about sockets
+      errOn = true,  -- Errors on sockets
+    },
+    binary = {
+      dbgOn = true,  -- Debugging traces about binary protocol. Print encoded message hex data.
+      infOn = true,  -- Information traces about binary protocol
+      errOn = true,  -- Errors in binary protocol
+    },
+    services = {
+      dbgOn = true,  -- Debugging traces about UA services work
+      infOn = true,  -- Informations traces
+      errOn = true,  -- Errors
+    }
   }
 }

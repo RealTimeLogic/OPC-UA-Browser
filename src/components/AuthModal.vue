@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, Ref, computed } from 'vue'
-import { OPCUA, UAServer } from '../utils/ua_server'
+import * as OPCUA from 'opcua-client'
+import { createServer }  from "../utils/ua_server"
 import { Modal } from 'bootstrap';
 
 import { uaApplication, LogMessageType} from '../stores/UaState'
@@ -34,10 +35,8 @@ async function fillSecurePolicies(url: string, newRequest: boolean = false) {
   window.localStorage.setItem('localEndpointUrl', url);
   try {
     endpoints.value = []
-
-    const server = new UAServer(uaApplication().opcuaWebSockURL())
-
-    await server.connectWebSocket()
+    let server = createServer(url, uaApplication().opcuaWebSockURL())
+    await server.connect()
     await server.hello(url)
     await server.openSecureChannel(10000, OPCUA.SecurePolicyUri.None, OPCUA.MessageSecurityMode.None)
 
@@ -49,7 +48,7 @@ async function fillSecurePolicies(url: string, newRequest: boolean = false) {
       // ignore
     }
 
-    await server.disconnectWebSocket()
+    await server.disconnect()
 
     for (let endpoint of getEndpointsResp.endpoints) {
       const policyName = OPCUA.getPolicyName(endpoint.securityPolicyUri)
@@ -257,7 +256,10 @@ function clearLocalStorages() {
                     :aria-expanded="selectedEndpointIdx === eidx ? 'true' : 'false'"
                     :aria-controls="'flush-collapse-' + eidx"
                   >
-                    {{ endpoint.encryptionName }} - {{ endpoint.modeName }}
+                    <div>
+                      <h5>{{ endpoint.encryptionName }} - {{ endpoint.modeName }}</h5>
+                      <h6 style="font-size: x-small;">{{ endpoint.endpointUrl }}</h6>
+                    </div>
                   </button>
                 </h2>
 

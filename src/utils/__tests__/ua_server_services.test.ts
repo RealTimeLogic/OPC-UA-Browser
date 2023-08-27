@@ -1,16 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import { UAServer, OPCUA } from '../ua_server'
+import * as OPCUA from 'opcua-client'
+import { RtlProxyClient } from '../ua_server'
 
 const WebSockURL = 'ws://localhost/opcua_client.lsp'
 const EndpointURL = 'opc.tcp://localhost:4841'
 
 describe('Services', async () => {
-  let server: UAServer
+  let server: OPCUA.UAServer
 
   beforeEach(async () => {
-    server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    server = new RtlProxyClient(WebSockURL)
     await server.hello(EndpointURL)
     await server.openSecureChannel(
       3600000,
@@ -41,7 +41,6 @@ describe('Services', async () => {
   afterEach(async () => {
     await server.closeSession()
     await server.closeSecureChannel()
-    await server.disconnectWebSocket()
   })
 
   it('Browse', async () => {

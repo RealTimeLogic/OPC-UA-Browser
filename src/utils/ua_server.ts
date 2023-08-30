@@ -231,6 +231,7 @@ export class RtlProxyClient implements UAServer {
 }
 
 export function createServer(endpointUrl: string, wsUrl: string): UAServer {
+  endpointUrl = endpointUrl.replace("opc.http", "http")
   const endpoint = new URL(endpointUrl)
   let srv: UAServer
   if (endpointUrl.startsWith("opc.tcp://") || window.location.origin !== endpoint.origin)

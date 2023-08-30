@@ -157,9 +157,9 @@ local function opcUaClient(wsSock)
               resp.error = error
             elseif request.browse then
                tracep(false, 4, "Browsing node: "..request.browse.nodeId)
-               resp.data, resp.error = uaClient:browse(request.browse.nodeId)
+               resp.data, resp.error = uaClient:browse(tostring(request.browse.nodeId))
             elseif request.read then
-               tracep(false, 4, "Reading attribute of node: "..request.read.nodeId)
+               tracep(false, 4, "Reading attribute of node: "..tostring(request.read.nodeId))
                resp.data, resp.error = uaClient:read(request.read.nodeId)
             else
                resp.error = "Unknown request type"

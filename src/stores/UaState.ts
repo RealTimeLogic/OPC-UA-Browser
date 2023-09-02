@@ -87,8 +87,6 @@ export const uaApplication = defineStore('uaApplication', () => {
 
   async function connect(endpoint: any) {
     try {
-      onMessage(LogMessageType.Info, 'Connecting to websocket ' + webSockURL.value)
-
       const srv = createServer(endpoint.endpointUrl, uaApplication().opcuaWebSockURL())
       await srv.connect()
 

@@ -170,10 +170,10 @@ export class RtlProxyClient implements UAServer {
     return this.sendRequest(request)
   }
 
-  async activateSession(policyId: string, identity?: string, secret?: string) {
+  async activateSession(tokentype: any, identity?: string, secret?: string) {
     const request = {
       activateSession: {
-        policyId: policyId,
+        policyId: tokentype.policyId,
         secret: secret,
         identity: identity
       }
@@ -214,7 +214,7 @@ export class RtlProxyClient implements UAServer {
   async browse(nodeId: string): Promise<any> {
     const request = {
       browse: {
-        nodeId: nodeId
+        nodeId: nodeId.toString()
       }
     }
     return this.sendRequest(request)
@@ -223,7 +223,7 @@ export class RtlProxyClient implements UAServer {
   async read(nodeId: string | string[]) {
     const request = {
       read: {
-        nodeId: nodeId
+        nodeId: nodeId.toString()
       }
     }
     return this.sendRequest(request)
@@ -231,6 +231,9 @@ export class RtlProxyClient implements UAServer {
 }
 
 export function createServer(endpointUrl: string, wsUrl: string): UAServer {
+  if (endpointUrl.startsWith("opc.http://"))
+    endpointUrl = endpointUrl.replace("opc.http", "http")
+
   const endpoint = new URL(endpointUrl)
   let srv: UAServer
   if (endpointUrl.startsWith("opc.tcp://") || window.location.origin !== endpoint.origin)

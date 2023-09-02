@@ -9,7 +9,7 @@ const props = defineProps(['attributes'])
     <div v-for="(attr, index) in props.attributes" class="node-attribute"  v-bind:key="index">
       <div class="node-attribute-name">{{ attr.name }}</div>
       <div class="node-attribute-value" style="text-align: left">
-        <pre>{{ attr.value }}</pre>
+        <pre>{{ JSON.stringify(attr.value, null, 2) }}</pre>
       </div>
     </div>
   </div>

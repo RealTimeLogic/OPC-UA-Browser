@@ -91,7 +91,7 @@ async function connectEndpoint(): Promise<boolean> {
     securityMode: endpoint.securityMode,
     serverCertificate: endpoint.serverCertificate,
     token: {
-      policyId: tokenType.policyId,
+      tokenType: tokenType,
       identity: identity,
       secret: secret
     }

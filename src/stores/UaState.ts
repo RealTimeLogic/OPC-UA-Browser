@@ -87,9 +87,7 @@ export const uaApplication = defineStore('uaApplication', () => {
 
   async function connect(endpoint: any) {
     try {
-      onMessage(LogMessageType.Info, 'Connecting to websocket ' + webSockURL.value)
-
-      let srv = createServer(endpoint.endpointUrl, uaApplication().opcuaWebSockURL())
+      const srv = createServer(endpoint.endpointUrl, uaApplication().opcuaWebSockURL())
       await srv.connect()
 
       onMessage(LogMessageType.Info, 'Connecting to endpoint ' + endpoint.endpointUrl)
@@ -108,7 +106,7 @@ export const uaApplication = defineStore('uaApplication', () => {
 
       onMessage(LogMessageType.Info, 'Logging to OPCUA server')
       await srv.activateSession(
-        endpoint.token.policyId,
+        endpoint.token.tokenType,
         endpoint.token.identity,
         endpoint.token.secret
       )

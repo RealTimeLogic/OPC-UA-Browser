@@ -7,9 +7,9 @@ const props = defineProps(['attributes'])
 <template>
   <div class="div-node-attributes">
     <div v-for="(attr, index) in props.attributes" class="node-attribute"  v-bind:key="index">
-      <div class="node-attribute-name">{{ attr.name }}</div>
+      <div class="node-attribute-name">{{ attr.Name }}</div>
       <div class="node-attribute-value" style="text-align: left">
-        <pre>{{ JSON.stringify(attr.value, null, 2) }}</pre>
+        <pre>{{ JSON.stringify(attr.Value, null, 2) }}</pre>
       </div>
     </div>
   </div>

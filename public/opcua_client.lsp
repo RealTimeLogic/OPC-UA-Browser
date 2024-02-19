@@ -11,8 +11,8 @@ local function isSupportedPolicy(policyUri)
 end
 
 local function isSupportedTokenType(userTokenPolicy)
-   local type = userTokenPolicy.tokenType
-   local policyUri = userTokenPolicy.securityPolicyUri
+   local type = userTokenPolicy.TokenType
+   local policyUri = userTokenPolicy.SecurityPolicyUri
 
    if type == ua.Types.UserTokenType.Anonymous then
       return true
@@ -42,9 +42,9 @@ local function opcUaClient(wsSock)
 
       local resp = { id = request and request.id }
       if request then
-         if request.connectEndpoint then
+         if request.ConnectEndpoint then
             tracep(false, 4, "Received Connect request")
-            local endpointUrl = request.connectEndpoint.endpointUrl
+            local endpointUrl = request.ConnectEndpoint.EndpointUrl
             if endpointUrl then
                if uaClient then
                   tracep(false, 4, "Closing UA client")
@@ -63,112 +63,113 @@ local function opcUaClient(wsSock)
                if result then
                   uaClient = nil
                   trace("Connection failed: ", result)
-                  resp.error = result
+                  resp.Error = result
                else
                   tracep(false, 5, "Connected")
                end
             else
                tracep(false, 1, "Error: client sent empty endpoint URL")
-               resp.error = "Empty endpointURL"
+               resp.Error = "Empty endpointURL"
             end
          else
             if not uaClient then
                tracep(false, 1, "Error: OPCUA request without calling connectEndpoint")
-               resp.error = "OPC UA Client not connected"
-            elseif request.openSecureChannel then
-              local timeoutMs = request.openSecureChannel.timeoutMs or 3600000
-              local securityPolicyUri = request.openSecureChannel.securityPolicyUri or ua.Types.SecurityPolicy.None
-              local securityMode = request.openSecureChannel.securityMode or ua.Types.MessageSecurityMode.None
-              local serverCertificate = request.openSecureChannel.serverCertificate
+               resp.Error = "OPC UA Client not connected"
+            elseif request.OpenSecureChannel then
+              local timeoutMs = request.OpenSecureChannel.TimeoutMs or 3600000
+              local securityPolicyUri = request.OpenSecureChannel.SecurityPolicyUri or ua.Types.SecurityPolicy.None
+              local securityMode = request.OpenSecureChannel.SecurityMode or ua.Types.MessageSecurityMode.None
+              local serverCertificate = request.OpenSecureChannel.ServerCertificate
               if serverCertificate == ba.json.null then
                serverCertificate = nil
               elseif serverCertificate then
                 serverCertificate = ba.b64decode(serverCertificate)
               end
               tracep(false, 4, "Opening secureChannel")
-              resp.data, resp.error = uaClient:openSecureChannel(timeoutMs, securityPolicyUri, securityMode, serverCertificate)
-              if resp.data then
-                 if resp.data.serverNonce then
-                   resp.data.serverNonce = ba.b64decode(resp.data.serverNonce)
+              resp.Data, resp.Error = uaClient:openSecureChannel(timeoutMs, securityPolicyUri, securityMode, serverCertificate)
+              if resp.Data then
+                 if resp.Data.ServerNonce then
+                   resp.Data.ServerNonce = ba.b64decode(resp.Data.ServerNonce)
                  end
               end
-            elseif request.closeSecureChannel then
+            elseif request.CloseSecureChannel then
               tracep(false, 4, "Closing Secure Channel")
-              resp.error = uaClient:closeSecureChannel()
-            elseif request.createSession then
+              resp.Error = uaClient:closeSecureChannel()
+            elseif request.CreateSession then
               tracep(false, 4, "Creating Session")
-              local sessionName = request.createSession.sessionName
-              local sessionTimeout = request.createSession.sessionTimeout
-              resp.data, resp.error = uaClient:createSession(sessionName, sessionTimeout)
-              if not resp.error then
-                for _, endpoint in ipairs(resp.data.serverEndpoints) do
-                  if endpoint.serverCertificate then
-                    endpoint.serverCertificate = ba.b64encode(endpoint.serverCertificate)
+              local sessionName = request.CreateSession.SessionName
+              local sessionTimeout = request.CreateSession.SessionTimeout
+              resp.Data, resp.Error = uaClient:createSession(sessionName, sessionTimeout)
+              if resp.Error then
+               resp.Data = nil
+              else
+                for _, endpoint in ipairs(resp.Data.ServerEndpoints) do
+                  if endpoint.ServerCertificate then
+                    endpoint.ServerCertificate = ba.b64encode(endpoint.ServerCertificate)
                   end
                 end
-                if resp.data.serverSignature.signature then
-                  resp.data.serverSignature.signature = ba.b64encode(resp.data.serverSignature.signature)
+                if resp.Data.ServerSignature.Signature then
+                  resp.Data.ServerSignature.Signature = ba.b64encode(resp.Data.ServerSignature.Signature)
                 end
 
-                if resp.data.serverCertificate then
-                  resp.data.serverCertificate = ba.b64encode(resp.data.serverCertificate)
+                if resp.Data.ServerCertificate then
+                  resp.Data.ServerCertificate = ba.b64encode(resp.Data.ServerCertificate)
                 end
 
-                if resp.data.serverNonce then
-                  resp.data.serverNonce = ba.b64encode(resp.data.serverNonce)
+                if resp.Data.ServerNonce then
+                  resp.Data.ServerNonce = ba.b64encode(resp.Data.ServerNonce)
                 end
-
               end
-            elseif request.activateSession then
+            elseif request.ActivateSession then
               tracep(false, 4, "Activating Session")
-              resp.data, resp.error = uaClient:activateSession(request.activateSession.policyId, request.activateSession.identity, request.activateSession.secret)
-              if resp.data and resp.data.serverNonce then
-                resp.data.serverNonce = ba.b64encode(resp.data.serverNonce)
+              resp.Data, resp.Error = uaClient:activateSession(request.ActivateSession.PolicyId, request.ActivateSession.Identity, request.ActivateSession.Secret)
+              if resp.Data and resp.Data.ServerNonce then
+                resp.Data.ServerNonce = ba.b64encode(resp.Data.ServerNonce)
               end
-            elseif request.closeSession then
+            elseif request.CloseSession then
               tracep(false, 4, "Closing Session")
-              resp.data, resp.error = uaClient:closeSession()
-            elseif request.getEndpoints then
+              resp.Data, resp.Error = uaClient:closeSession()
+            elseif request.GetEndpoints then
               tracep(false, 4, "Selecting endpoints: ")
-              local content, error = uaClient:getEndpoints(request.getEndpoints)
+              local content, error = uaClient:getEndpoints(request.GetEndpoints)
               if not error then
                 -- Leave only supported secure Policies
                 local endpoints = {}
-                for _,endpoint in ipairs(content.endpoints) do
-                  if isSupportedPolicy(endpoint.securityPolicyUri) then
-                     if endpoint.serverCertificate then
-                       endpoint.serverCertificate = ba.b64encode(endpoint.serverCertificate)
+                for _,endpoint in ipairs(content.Endpoints) do
+                  if isSupportedPolicy(endpoint.SecurityPolicyUri) then
+                     if endpoint.ServerCertificate then
+                       endpoint.ServerCertificate = ba.b64encode(endpoint.ServerCertificate)
                      end
 
                      local userTokenPolicies = {}
-                     for _,userTokenPolicy in ipairs(endpoint.userIdentityTokens) do
+                     for _,userTokenPolicy in ipairs(endpoint.UserIdentityTokens) do
                         if isSupportedTokenType(userTokenPolicy) then
                            table.insert(userTokenPolicies, userTokenPolicy)
                         end
                      end
-                     endpoint.userIdentityTokens = userTokenPolicies
+                     endpoint.UserIdentityTokens = userTokenPolicies
 
                      table.insert(endpoints, endpoint)
                   end
                 end
-                content.endpoints = endpoints
+                content.Endpoints = endpoints
               end
-              resp.data = content
-              resp.error = error
-            elseif request.browse then
-               tracep(false, 4, "Browsing node: "..request.browse.nodeId)
-               resp.data, resp.error = uaClient:browse(tostring(request.browse.nodeId))
-            elseif request.read then
-               tracep(false, 4, "Reading attribute of node: "..tostring(request.read.nodeId))
-               resp.data, resp.error = uaClient:read(request.read.nodeId)
+              resp.Data = content
+              resp.Error = error
+            elseif request.Browse then
+               tracep(false, 4, "Browsing node: "..request.Browse.NodeId)
+               resp.Data, resp.Error = uaClient:browse(tostring(request.Browse.NodeId))
+            elseif request.Read then
+               tracep(false, 4, "Reading attribute of node: "..tostring(request.Read.NodeId))
+               resp.Data, resp.Error = uaClient:read(request.Read.NodeId)
             else
-               resp.error = "Unknown request type"
-               tracep(false, 1, resp.error)
+               resp.Error = "Unknown request type"
+               tracep(false, 1, resp.Error)
             end
          end
       else
-         resp.error = "JSON parse error"
-         tracep(false, 1, resp.error)
+         resp.Error = "JSON parse error"
+         tracep(false, 1, resp.Error)
       end
       local data = ba.json.encode(resp)
       wsSock:write(data, true)

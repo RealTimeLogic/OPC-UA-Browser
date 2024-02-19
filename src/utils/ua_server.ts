@@ -58,12 +58,12 @@ export class RtlProxyClient implements UAServer {
           const resp = JSON.parse(msg.data)
           const request = this.Requests.get(resp.id)
           if (!request) return
-          if (resp.error) {
-            request.reject(new Error(resp.error))
+          if (resp.Error) {
+            request.reject(new Error(resp.Error))
           } else {
             clearTimeout(request.timeout)
             this.Requests.delete(resp.id)
-            request.resolve(resp.data)
+            request.resolve(resp.Data)
           }
         } catch(e) {
           throw new Error('Invalid JSON response: ' + msg.data)
@@ -124,12 +124,10 @@ export class RtlProxyClient implements UAServer {
 
   async hello(endpointUrl: string) {
 
-    const config = {
-      endpointUrl: endpointUrl
-    }
-
     const request = {
-      connectEndpoint: config
+      ConnectEndpoint: {
+        EndpointUrl: endpointUrl
+      }
     }
 
     return this.sendRequest(request)
@@ -142,11 +140,11 @@ export class RtlProxyClient implements UAServer {
     serverCertificate: string | null = null
   ) {
     const request = {
-      openSecureChannel: {
-        timeoutMs: timeoutMs,
-        securityPolicyUri: securityPolicyUri,
-        securityMode: securityMode,
-        serverCertificate: serverCertificate
+      OpenSecureChannel: {
+        TimeoutMs: timeoutMs,
+        SecurityPolicyUri: securityPolicyUri,
+        SecurityMode: securityMode,
+        ServerCertificate: serverCertificate
       }
     }
     return this.sendRequest(request)
@@ -154,7 +152,7 @@ export class RtlProxyClient implements UAServer {
 
   async closeSecureChannel() {
     const request = {
-      closeSecureChannel: {}
+      CloseSecureChannel: {}
     }
 
     return this.sendRequest(request)
@@ -162,20 +160,20 @@ export class RtlProxyClient implements UAServer {
 
   async createSession(sessionName: string, timeoutMs: number) {
     const request = {
-      createSession: {
-        sessionName: sessionName,
-        sessionTimeout: timeoutMs
+      CreateSession: {
+        SessionName: sessionName,
+        SessionTimeout: timeoutMs
       }
     }
     return this.sendRequest(request)
   }
 
-  async activateSession(tokentype: any, identity?: string, secret?: string) {
+  async activateSession(policyId: any, identity?: string, secret?: string) {
     const request = {
-      activateSession: {
-        policyId: tokentype.policyId,
-        secret: secret,
-        identity: identity
+      ActivateSession: {
+        PolicyId: policyId,
+        Secret: secret,
+        Identity: identity
       }
     }
 
@@ -184,7 +182,7 @@ export class RtlProxyClient implements UAServer {
 
   async closeSession() {
     const request = {
-      closeSession: {}
+      CloseSession: {}
     }
     return this.sendRequest(request)
   }
@@ -192,9 +190,9 @@ export class RtlProxyClient implements UAServer {
   async findServers(endpointUrl?: string, serverUris?: string[])  {
 
     const request = {
-      findServers: {
-        endpointUrl: endpointUrl,
-        serverUris: serverUris
+      FindServers: {
+        EndpointUrl: endpointUrl,
+        ServerUris: serverUris
       }
     }
 
@@ -203,8 +201,8 @@ export class RtlProxyClient implements UAServer {
 
   async getEndpoints(endpointUrl?: string) {
     const request = {
-      getEndpoints: {
-        endpointUrl: endpointUrl
+      GetEndpoints: {
+        EndpointUrl: endpointUrl
       }
     }
 
@@ -213,8 +211,8 @@ export class RtlProxyClient implements UAServer {
 
   async browse(nodeId: string): Promise<any> {
     const request = {
-      browse: {
-        nodeId: nodeId.toString()
+      Browse: {
+        NodeId: nodeId.toString()
       }
     }
     return this.sendRequest(request)
@@ -222,8 +220,8 @@ export class RtlProxyClient implements UAServer {
 
   async read(nodeId: string | string[]) {
     const request = {
-      read: {
-        nodeId: nodeId.toString()
+      Read: {
+        NodeId: nodeId.toString()
       }
     }
     return this.sendRequest(request)

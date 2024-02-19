@@ -87,28 +87,28 @@ export const uaApplication = defineStore('uaApplication', () => {
 
   async function connect(endpoint: any) {
     try {
-      const srv = createServer(endpoint.endpointUrl, uaApplication().opcuaWebSockURL())
+      const srv = createServer(endpoint.EndpointUrl, uaApplication().opcuaWebSockURL())
       await srv.connect()
 
-      onMessage(LogMessageType.Info, 'Connecting to endpoint ' + endpoint.endpointUrl)
-      await srv.hello(endpoint.endpointUrl)
+      onMessage(LogMessageType.Info, 'Connecting to endpoint ' + endpoint.EndpointUrl)
+      await srv.hello(endpoint.EndpointUrl)
 
       onMessage(LogMessageType.Info, 'Opening secure channel')
       await srv.openSecureChannel(
         360000,
-        endpoint.securityPolicyUri,
-        endpoint.securityMode,
-        endpoint.serverCertificate
+        endpoint.SecurityPolicyUri,
+        endpoint.SecurityMode,
+        endpoint.ServerCertificate
       )
 
       onMessage(LogMessageType.Info, 'Creating session')
       await srv.createSession('opcua web session', 3600000)
 
-      onMessage(LogMessageType.Info, 'Logging to OPCUA server')
+      onMessage(LogMessageType.Info, 'Logging to OPCUA server:' + endpoint.Token.Identity + ' with policy ' + endpoint.Token.TokenType.PolicyId)
       await srv.activateSession(
-        endpoint.token.tokenType,
-        endpoint.token.identity,
-        endpoint.token.secret
+        endpoint.Token.TokenType.PolicyId,
+        endpoint.Token.Identity,
+        endpoint.Token.Secret
       )
 
       onMessage(LogMessageType.Info, 'Connected to OPCUA server')
@@ -132,13 +132,16 @@ export const uaApplication = defineStore('uaApplication', () => {
 
       onMessage(LogMessageType.Info, 'Browsing nodeID ' + node.nodeid)
       const resp: any = await server.value.browse(node.nodeid.toString())
-      resp.results.forEach((result: any) => {
-        result.references.forEach((ref: any) => {
-          node.nodes.push({
-            nodeid: ref.nodeId,
-            label: ref.browseName.name,
-            nodes: []
-          })
+      resp.Results.forEach((result: any) => {
+          if (!Array.isArray(result.References))
+            return
+
+          result.References.forEach((ref: any) => {
+            node.nodes.push({
+              nodeid: ref.NodeId,
+              label: ref.BrowseName.Name,
+              nodes: []
+            })
         })
       })
     } catch (e) {
@@ -154,13 +157,13 @@ export const uaApplication = defineStore('uaApplication', () => {
 
       onMessage(LogMessageType.Info, 'Reading attributes ' + nodeId)
       const resp: any = await server.value.read(nodeId)
-      const attributes = resp.results.filter((r: any, index: number) => {
-        if (r.statusCode == 0) {
-          r.attributeId = index
-          r.name = OPCUA.getAttributeName(index)
+      const attributes = resp.Results.filter((r: any, index: number) => {
+        if (r.StatusCode == 0) {
+          r.AttributeId = index
+          r.Name = OPCUA.getAttributeName(index)
         }
 
-        return r.statusCode == 0
+        return r.StatusCode == 0
       })
       return attributes
     } catch (e) {

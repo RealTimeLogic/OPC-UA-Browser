@@ -206,7 +206,7 @@ if serverConfig then
   end
 
   local function demoAddon(services)
-    local objects = "i=40"
+    local objects = "i=85"
     io:dofile(".add_variables.lua")(services, objects)
   end
 

@@ -41,7 +41,6 @@ return {
     { -- #1
       securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#None", -- ua.Types.SecurityPolicy.None
     },
-
     -- secure policy Basic128Rsa15 can have key length 1024 or 2048 bits length
     -- deprecated in the OPC-UA standard.
     { -- #2
@@ -50,7 +49,15 @@ return {
         2, -- ua.Types.MessageSecurityMode.Sign
         3, -- ua.Types.MessageSecurityMode.SignAndEncrypt
       },
-    }
+    },
+    { -- #3
+      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Aes128_Sha256_RsaOaep",
+      securityMode = {2, 3}, -- Sign + SignAndEncrypt,
+    },
+    { -- #4
+      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256",
+      securityMode = {2, 3}, -- Sign + SignAndEncrypt,
+    },
   },
 
   userIdentityTokens = {
@@ -79,17 +86,17 @@ return {
 
   logging = {
     socket = {
-      dbgOn = true,  -- debug logs of socket
+      dbgOn = false,  -- debug logs of socket
       infOn = true,  -- information logs about sockets
       errOn = true,  -- Errors on sockets
     },
     binary = {
-      dbgOn = true,  -- Debugging traces about binary protocol. Print encoded message hex data.
+      dbgOn = false,  -- Debugging traces about binary protocol. Print encoded message hex data.
       infOn = true,  -- Information traces about binary protocol
       errOn = true,  -- Errors in binary protocol
     },
     services = {
-      dbgOn = true,  -- Debugging traces about UA services work
+      dbgOn = false,  -- Debugging traces about UA services work
       infOn = true,  -- Informations traces
       errOn = true,  -- Errors
     }

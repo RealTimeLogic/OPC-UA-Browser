@@ -1,4 +1,5 @@
-import { UAServer, UaHttpClient } from "opcua-client"
+// import { UAServer, UaHttpClient } from "opcua-client"
+import { UAServer } from "opcua-client"
 
 type Request = {
   reject(error: any): void
@@ -229,15 +230,17 @@ export class RtlProxyClient implements UAServer {
 }
 
 export function createServer(endpointUrl: string, wsUrl: string): UAServer {
-  if (endpointUrl.startsWith("opc.http://"))
-    endpointUrl = endpointUrl.replace("opc.http", "http")
+  return new RtlProxyClient(wsUrl)
 
-  const endpoint = new URL(endpointUrl)
-  let srv: UAServer
-  if (endpointUrl.startsWith("opc.tcp://") || window.location.origin !== endpoint.origin)
-    srv = new RtlProxyClient(wsUrl)
-  else
-    srv = new UaHttpClient(endpointUrl)
+  // if (endpointUrl.startsWith("opc.http://"))
+  //   endpointUrl = endpointUrl.replace("opc.http", "http")
 
-  return srv
+  // const endpoint = new URL(endpointUrl)
+  // let srv: UAServer
+  // if (endpointUrl.startsWith("opc.tcp://") || window.location.origin !== endpoint.origin)
+  //   srv = new RtlProxyClient(wsUrl)
+  // else
+  //   srv = new UaHttpClient(endpointUrl)
+
+  // return srv
 }

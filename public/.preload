@@ -93,7 +93,6 @@ local hostname = getHostName()
 
 local makoConf=require"loadconf"
 
-
 ---
 --- OPCUA client
 ---
@@ -120,54 +119,57 @@ _G.clientConfig = clientConfig
 ---  OPCUA server
 ---
 
-local serverConfig = makoConf.uaServer
--- if need to disable OPCUA server then set 'uaServer' to false
--- in mako.conf file
-if serverConfig == false then
-  serverConfig = nil
-elseif serverConfig == nil then
-  serverConfig = _ENV.app.io:dofile(".opcua_server_config", _ENV)
+local users = makoConf.users
+if users == nil then
+  users = {
+    admin = "admin"
+  }
 end
 
-if serverConfig then
+local function authenticate(tokenType, token, user)
+  local accessPermitted = false
+  if tokenType == "anonymous" then
+    tracep(false, 5, "Anonymous token")
+    accessPermitted = true
+  elseif tokenType == "username" then
+    tracep(false, 5, string.format("Checking user name '%s' and password.", user))
+    local password = users[user]
+    if password ~= nil and token == password then
+      accessPermitted = true
+    end
+  elseif tokenType == "x509" then
+    tracep(false, 5, "Checking user certificate.")
+    local cert = ba.parsecert(token)
+    -- if cert ~= nil and makoConf.users[cert.subject.commonname] ~= nil then
+    if cert ~= nil then
+      tracep(false, 5, "x509 certificate commom name: ", cert.subject.commonname)
+      accessPermitted = true
+    end
+  end
+
+  if accessPermitted then
+    tracep(false, 5, "Access permitted")
+  else
+    tracep(false, 5, "Access denied")
+  end
+
+  return accessPermitted
+end
+
+uaServers = {}
+local serverConfigs = makoConf.uaServers
+-- if need to disable OPCUA server then set 'uaServer' to false
+-- in mako.conf file
+if serverConfigs == false then
+  serverConfigs = {}
+elseif serverConfigs == nil then
+  serverConfigs = _ENV.app.io:dofile(".opcua_server_config", _ENV)
+end
+
+for _, serverConfig in ipairs(serverConfigs) do
   trace("Start OPCUA server")
 
-  local users = makoConf.users
-  if users == nil then
-    users = {
-      admin = "admin"
-    }
-  end
-
-  serverConfig.authenticate = function(tokenType, token, user)
-    local accessPermitted = false
-    if tokenType == "anonymous" then
-      tracep(false, 5, "Anonymous token")
-      accessPermitted = true
-    elseif tokenType == "username" then
-      tracep(false, 5, string.format("Checking user name '%s' and password.", user))
-      local password = users[user]
-      if password ~= nil and token == password then
-        accessPermitted = true
-      end
-    elseif tokenType == "x509" then
-      tracep(false, 5, "Checking user certificate.")
-      local cert = ba.parsecert(token)
-      -- if cert ~= nil and makoConf.users[cert.subject.commonname] ~= nil then
-      if cert ~= nil then
-        tracep(false, 5, "x509 certificate commom name: ", cert.subject.commonname)
-        accessPermitted = true
-      end
-    end
-
-    if accessPermitted then
-      tracep(false, 5, "Access permitted")
-    else
-      tracep(false, 5, "Access denied")
-    end
-
-    return accessPermitted
-  end
+  serverConfig.authenticate = authenticate
 
   -- Create HTTP and HTTPS endpoints since we don't know hostname before server is started
   -- if endpoint URL has only scheme then add hostname, port and http directory
@@ -184,7 +186,11 @@ if serverConfig then
     end
 
     if endpointUrl and serverConfig.httpDirName then
-      endpoint.endpointUrl = endpointUrl.."/"..serverConfig.httpDirName.."/"
+      endpointUrl = endpointUrl.."/"..serverConfig.httpDirName.."/"
+    end
+
+    if endpointUrl then
+      endpoint.endpointUrl = endpointUrl
     end
   end
 
@@ -212,12 +218,17 @@ if serverConfig then
 
   uaServer:initialize(demoAddon)
   uaServer:run()
-
-  onunload = function()
-    trace("Stopping OPC-UA server")
-    uaServer:shutdown()
-  end
-
+  table.insert(uaServers, uaServer)
 end
+
+onunload = function()
+  for i, uaServer in ipairs(uaServers) do
+    trace("Stopping OPC-UA server "..i.."...")
+    uaServer:shutdown()
+    trace("OPC-UA server "..i.." stopped")
+  end
+end
+
+_G.uaServers = uaServers
 
 trace("OPCUA ready")

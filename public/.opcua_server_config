@@ -25,40 +25,6 @@ local logging = {
   }
 }
 
-uaClient = {
-  bufSize = 65536,
-  applicationName="RealTimeLogic OPCUA Client",
-
-  -- Application URI should be equal to
-  -- URI subject alternative name extention in the certificate
-  applicationUri="urn:RealTimeLogic:opcua:client",
-
-  -- Path to the certificate and key files
-  -- when nil then the embedded certificate and key will be used
-  -- certificate = ".opcua_client.pem",
-  -- key =         ".opcua_client.key",
-
-  securePolicies ={
-    { -- #1
-      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#None",
-    },
-    { -- #2
-      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
-      securityMode = {2, 3}, -- Sign + SignAndEncrypt,
-    },
-    { -- #3
-      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Aes128_Sha256_RsaOaep",
-      securityMode = {2, 3}, -- Sign + SignAndEncrypt,
-    },
-    { -- #4
-      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256",
-      securityMode = {2, 3}, -- Sign + SignAndEncrypt,
-    },
-  },
-
-  logging = logging
-}
-
 local binaryServer = {
   -- Application name
   applicationName="RealTimeLogic OPCUA Server",
@@ -91,6 +57,10 @@ local binaryServer = {
     -- if you need some security then remove this element from array
     { -- #1
       securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#None", -- ua.Types.SecurityPolicy.None
+    },
+    { -- #2
+      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
+      securityMode = {2, 3}, -- Sign + SignAndEncrypt,
     },
     { -- #3
       securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Aes128_Sha256_RsaOaep",
@@ -191,7 +161,9 @@ local httpServer = {
   logging = logging
 }
 
-uaServers = {
-  binaryServer,
-  httpServer
+local uaServers = {
+  [1] = binaryServer
+  -- [2] = httpServer
 }
+
+return uaServers

@@ -1,4 +1,4 @@
-trace("Initializing OPCUA")
+tracep(false, 5, "Initializing OPCUA")
 local ua = require("opcua.api")
 local init = require("opcua.init")
 
@@ -8,12 +8,13 @@ local gettime=os.time
 
 local function getHostName()
   local hostname
-  if os.execute() then
+  if os and os.execute and os.execute() then
     local f = _G.io.popen("hostname")
     hostname = f:read("*a")
   else
     local sock = sock.connect("google.com", 80)
-    hostname = sock:peername()
+    local _,_,ips = string.find(sock:sockname(), "(%d+.%d+.%d+.%d+)")
+    hostname = ips
   end
 
   hostname = string.gsub(hostname, "[\n\r]", "")
@@ -21,7 +22,7 @@ local function getHostName()
 end
 
 local function getDefaultCert(fileName)
-  trace("Use embedded OPCUA certificates")
+  tracep(false, 5, "Use embedded OPCUA certificates")
   local keyPath = "."..fileName..".key"
   local certPath = "."..fileName..".pem"
   return certPath, keyPath, _ENV.app.io
@@ -48,12 +49,12 @@ end
 local function genOPCUACert(genFunc, hostname, applicationUri, fileName)
   local hio = ba.openio("home")
   if not hio then
-    trace("Cannot open homeio")
+    tracep(false, 5, "Cannot open homeio")
     return getDefaultCert(fileName)
   end
 
   if not hio:stat("cert") and not hio:mkdir("cert") then
-    trace("Cannot create directory "..hio:realpath("cert"))
+    tracep(false, 5, "Cannot create directory "..hio:realpath("cert"))
     return getDefaultCert(fileName)
   end
 
@@ -91,16 +92,21 @@ end
 
 local hostname = getHostName()
 
-local makoConf=require"loadconf"
+local makoConf=pcall(require, "loadconf")
+if not makoConf then
+  tracep(false, 5, "Cannot load mako.conf")
+  makoConf = nil
+end
 
 ---
 --- OPCUA client
 ---
 
-trace("Creating OPCUA client")
+tracep(false, 5, "Creating OPCUA client")
 -- Load and check client configuration file
-local clientConfig = makoConf.uaClient
+local clientConfig = makoConf and makoConf.uaClient
 if not clientConfig then
+  tracep(false, 5, "Loading OPCUA client config from file '.opcua_client_config'")
   clientConfig = _ENV.app.io:dofile(".opcua_client_config", _ENV)
 end
 
@@ -119,7 +125,7 @@ _G.clientConfig = clientConfig
 ---  OPCUA server
 ---
 
-local users = makoConf.users
+local users = makoConf and makoConf.users
 if users == nil then
   users = {
     admin = "admin"
@@ -157,17 +163,20 @@ local function authenticate(tokenType, token, user)
 end
 
 uaServers = {}
-local serverConfigs = makoConf.uaServers
+local serverConfigs = makoConf and makoConf.uaServers
 -- if need to disable OPCUA server then set 'uaServer' to false
 -- in mako.conf file
 if serverConfigs == false then
+  tracep(false, 5, "OPCUA server diasabled in mako.conf file")
   serverConfigs = {}
 elseif serverConfigs == nil then
-  serverConfigs = _ENV.app.io:dofile(".opcua_server_config", _ENV)
+  tracep(false, 5, "Loading OPCUA server configuration from .opcua_server_config.lua")
+  local config = _ENV.app.io:dofile(".opcua_server_config", _ENV)
+  serverConfigs = config
 end
 
 for _, serverConfig in ipairs(serverConfigs) do
-  trace("Start OPCUA server")
+  tracep(false, 5, "Start OPCUA server")
 
   serverConfig.authenticate = authenticate
 
@@ -176,9 +185,9 @@ for _, serverConfig in ipairs(serverConfigs) do
   for _, endpoint in ipairs(serverConfig.endpoints) do
     local endpointUrl = endpoint.endpointUrl
     if endpointUrl == "http://" or endpointUrl == "opc.http://" then
-      endpointUrl = string.format("%s%s:%d", endpointUrl, hostname, mako.port)
+      endpointUrl = string.format("%s%s:%d/%s", endpointUrl, hostname, mako and mako.port or 80, _ENV.dir:baseuri())
     elseif endpointUrl == "https://" or endpointUrl == "opc.https://" then
-      endpointUrl = string.format("%s%s:%d", endpointUrl, hostname, mako.sslport)
+      endpointUrl = string.format("%s%s:%d/%s", endpointUrl, hostname, mako and mako.sslport or 443, _ENV.dir:baseuri())
     elseif endpointUrl == "opc.tcp://" then
       endpointUrl = string.format("%s%s:%d", endpointUrl, hostname, endpoint.listenPort or "4841")
     else
@@ -186,7 +195,7 @@ for _, serverConfig in ipairs(serverConfigs) do
     end
 
     if endpointUrl and serverConfig.httpDirName then
-      endpointUrl = endpointUrl.."/"..serverConfig.httpDirName.."/"
+      endpointUrl = string.format("%s/%s", endpointUrl, serverConfig.httpDirName)
     end
 
     if endpointUrl then
@@ -207,7 +216,7 @@ for _, serverConfig in ipairs(serverConfigs) do
 
   local ok, uaServer = pcall(ua.newServer, serverConfig)
   if not ok then
-    trace("Error: server too old for OPCUA example: "..uaServer)
+    tracep(false, 5, "Error: server too old for OPCUA example: "..uaServer)
     return
   end
 
@@ -223,12 +232,12 @@ end
 
 onunload = function()
   for i, uaServer in ipairs(uaServers) do
-    trace("Stopping OPC-UA server "..i.."...")
+    tracep(false, 5, "Stopping OPC-UA server "..i.."...")
     uaServer:shutdown()
-    trace("OPC-UA server "..i.." stopped")
+    tracep(false, 5, "OPC-UA server "..i.." stopped")
   end
 end
 
 _G.uaServers = uaServers
 
-trace("OPCUA ready")
+tracep(false, 5, "OPCUA ready")

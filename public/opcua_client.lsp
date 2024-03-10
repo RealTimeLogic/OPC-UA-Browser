@@ -89,7 +89,7 @@ local function opcUaClient(wsSock)
               resp.Data, resp.Error = uaClient:openSecureChannel(timeoutMs, securityPolicyUri, securityMode, serverCertificate)
               if resp.Data then
                  if resp.Data.ServerNonce then
-                   resp.Data.ServerNonce = ba.b64decode(resp.Data.ServerNonce)
+                   resp.Data.ServerNonce = ba.b64encode(resp.Data.ServerNonce)
                  end
               end
             elseif request.CloseSecureChannel then

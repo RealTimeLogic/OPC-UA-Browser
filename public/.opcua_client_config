@@ -36,11 +36,11 @@ return {
     },
     binary = {
       dbgOn = false,
-      infOn = true,
+      infOn = false,
       errOn = true
     },
     services = {
-      dbgOn = false,
+      dbgOn = true,
       infOn = true,
       errOn = true
     }

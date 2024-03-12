@@ -33,6 +33,9 @@ local binaryServer = {
   -- URI subject alternative name extention in the certificate
   applicationUri="urn:RealTimeLogic:opcua:server",
 
+  certificate = ".opcua_server.pem",
+  key =         ".opcua_server.key",
+
   endpoints = {
     {
       -- endpoint URL will be sent to clients.
@@ -50,7 +53,7 @@ local binaryServer = {
 
   -- Size of buffer is allocated for one chunk.
   -- Minimum size 8192.
-  bufSize = 65536,
+  bufSize = 16384,
 
   securePolicies = {
     -- Secure policy "None" provides no security at all.
@@ -124,7 +127,7 @@ local httpServer = {
 
   -- Size of buffer is allocated for one chunk.
   -- Minimum size 8192.
-  bufSize = 65536,
+  bufSize = 16384,
 
   securePolicies = {
     -- Secure policy "None" provides no security at all.

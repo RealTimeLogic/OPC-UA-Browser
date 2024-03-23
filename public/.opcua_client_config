@@ -17,18 +17,26 @@ return {
     { -- #2
       securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
       securityMode = {2, 3}, -- Sign + SignAndEncrypt,
-    }
+    },
+    { -- #3
+      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Aes128_Sha256_RsaOaep",
+      securityMode = {2, 3}, -- Sign + SignAndEncrypt,
+    },
+    { -- #4
+      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256",
+      securityMode = {2, 3}, -- Sign + SignAndEncrypt,
+    },
   },
 
   logging = {
     socket = {
-      dbgOn = true,
+      dbgOn = false,
       infOn = true,
       errOn = true
     },
     binary = {
-      dbgOn = true,
-      infOn = true,
+      dbgOn = false,
+      infOn = false,
       errOn = true
     },
     services = {

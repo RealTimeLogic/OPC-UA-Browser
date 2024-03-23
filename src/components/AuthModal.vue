@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, Ref, computed } from 'vue'
-import { OPCUA, UAServer } from '../utils/ua_server'
+import * as OPCUA from 'opcua-client'
+import { createServer }  from "../utils/ua_server"
 import { Modal } from 'bootstrap';
 
 import { uaApplication, LogMessageType} from '../stores/UaState'
@@ -34,10 +35,8 @@ async function fillSecurePolicies(url: string, newRequest: boolean = false) {
   window.localStorage.setItem('localEndpointUrl', url);
   try {
     endpoints.value = []
-
-    const server = new UAServer(uaApplication().opcuaWebSockURL())
-
-    await server.connectWebSocket()
+    let server = createServer(url, uaApplication().opcuaWebSockURL())
+    await server.connect()
     await server.hello(url)
     await server.openSecureChannel(10000, OPCUA.SecurePolicyUri.None, OPCUA.MessageSecurityMode.None)
 
@@ -49,17 +48,17 @@ async function fillSecurePolicies(url: string, newRequest: boolean = false) {
       // ignore
     }
 
-    await server.disconnectWebSocket()
+    await server.disconnect()
 
-    for (let endpoint of getEndpointsResp.endpoints) {
-      const policyName = OPCUA.getPolicyName(endpoint.securityPolicyUri)
-      const modeName = OPCUA.getMessageModeName(endpoint.securityMode)
-      endpoint.securityPolicyId = policyName + modeName
-      endpoint.encryptionName = policyName
-      endpoint.modeName = modeName
+    for (let endpoint of getEndpointsResp.Endpoints) {
+      const policyName = OPCUA.getPolicyName(endpoint.SecurityPolicyUri)
+      const modeName = OPCUA.getMessageModeName(endpoint.SecurityMode)
+      endpoint.SecurityPolicyId = policyName + modeName
+      endpoint.EncryptionName = policyName
+      endpoint.ModeName = modeName
     }
 
-    endpoints.value = getEndpointsResp.endpoints
+    endpoints.value = getEndpointsResp.Endpoints
   } catch (err) {
     uaApplication().onMessage(LogMessageType.Error, err)
   }
@@ -71,11 +70,11 @@ async function connectEndpoint(): Promise<boolean> {
   }
 
   const endpoint = endpoints.value[selectedEndpointIdx.value]
-  const tokenType = endpoint.userIdentityTokens[selectedTokenIdx.value]
+  const tokenType = endpoint.UserIdentityTokens[selectedTokenIdx.value]
 
   let secret
   let identity
-  switch (tokenType.tokenType) {
+  switch (tokenType.TokenType) {
     case OPCUA.UserTokenType.UserName:
       identity = userName.value
       secret = password.value
@@ -87,14 +86,14 @@ async function connectEndpoint(): Promise<boolean> {
   }
 
   const endpointParams = {
-    endpointUrl: endpoint.endpointUrl,
-    securityPolicyUri: endpoint.securityPolicyUri,
-    securityMode: endpoint.securityMode,
-    serverCertificate: endpoint.serverCertificate,
-    token: {
-      policyId: tokenType.policyId,
-      identity: identity,
-      secret: secret
+    EndpointUrl: endpoint.EndpointUrl,
+    SecurityPolicyUri: endpoint.SecurityPolicyUri,
+    SecurityMode: endpoint.SecurityMode,
+    ServerCertificate: endpoint.ServerCertificate,
+    Token: {
+      TokenType: tokenType,
+      Identity: identity,
+      Secret: secret
     }
   }
 
@@ -135,17 +134,17 @@ const selected = computed(() => {
   if (!endpoints.value[idx])
     return false;
 
-  if (!endpoints.value[idx]?.userIdentityTokens[tidx])
+  if (!endpoints.value[idx]?.UserIdentityTokens[tidx])
     return false;
 
-  const endpoint = endpoints.value[idx].userIdentityTokens[tidx]
-  if (endpoint.tokenType === OPCUA.UserTokenType.Anonymous)
+  const endpoint = endpoints.value[idx].UserIdentityTokens[tidx]
+  if (endpoint.TokenType === OPCUA.UserTokenType.Anonymous)
     return true;
 
-  if (endpoint.tokenType === OPCUA.UserTokenType.UserName && userName.value !== '' && userName.value !== '')
+  if (endpoint.TokenType === OPCUA.UserTokenType.UserName && userName.value !== '' && userName.value !== '')
     return true;
 
-  if (endpoint.tokenType === OPCUA.UserTokenType.Certificate && certificateFile.value !== undefined)
+  if (endpoint.TokenType === OPCUA.UserTokenType.Certificate && certificateFile.value !== undefined)
     return true;
 
   return false
@@ -172,7 +171,7 @@ onMounted( async () => {
     await fillSecurePolicies(endpointUrl.value);
 
     // Try check if idx and tidx exists in endpoits url
-    if (endpoints.value[localeidx]?.userIdentityTokens[localetidx]) {
+    if (endpoints.value[localeidx]?.UserIdentityTokens[localetidx]) {
       selectToken(parseInt(localeidx), parseInt(localetidx));
       userName.value = localUser;
       password.value = localPass;
@@ -257,7 +256,10 @@ function clearLocalStorages() {
                     :aria-expanded="selectedEndpointIdx === eidx ? 'true' : 'false'"
                     :aria-controls="'flush-collapse-' + eidx"
                   >
-                    {{ endpoint.encryptionName }} - {{ endpoint.modeName }}
+                    <div>
+                      <h5>{{ endpoint.EncryptionName }} - {{ endpoint.ModeName }}</h5>
+                      <h6 style="font-size: x-small;">{{ endpoint.EndpointUrl }}</h6>
+                    </div>
                   </button>
                 </h2>
 
@@ -271,12 +273,12 @@ function clearLocalStorages() {
                     <div
                       :id="'tokens-' + eidx"
                       class="flex-column"
-                      v-for="(token, tidx) in endpoint.userIdentityTokens"
-                      :key="token.policyId"
+                      v-for="(token, tidx) in endpoint.UserIdentityTokens"
+                      :key="token.PolicyId"
                     >
                       <div
                         class="form-check"
-                        v-if="token.tokenType == OPCUA.UserTokenType.Anonymous"
+                        v-if="token.TokenType == OPCUA.UserTokenType.Anonymous"
                       >
                         <input
                           class="form-check-input"
@@ -293,7 +295,7 @@ function clearLocalStorages() {
 
                       <div
                         class="form-check"
-                        v-if="token.tokenType == OPCUA.UserTokenType.UserName"
+                        v-if="token.TokenType == OPCUA.UserTokenType.UserName"
                       >
                         <input
                           class="form-check-input"
@@ -308,7 +310,7 @@ function clearLocalStorages() {
                         >
                         <div
                           class="input-group mb-3"
-                          v-if="token.tokenType == OPCUA.UserTokenType.UserName"
+                          v-if="token.TokenType == OPCUA.UserTokenType.UserName"
                         >
                           <input
                             type="text"
@@ -332,7 +334,7 @@ function clearLocalStorages() {
 
                       <div
                         class="form-check"
-                        v-if="token.tokenType == OPCUA.UserTokenType.Certificate"
+                        v-if="token.TokenType == OPCUA.UserTokenType.Certificate"
                       >
                         <input
                           class="form-check-input"

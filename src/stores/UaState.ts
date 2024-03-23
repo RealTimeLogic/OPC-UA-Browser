@@ -1,15 +1,16 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { UAServer, OPCUA } from '../utils/ua_server'
+import { createServer} from '../utils/ua_server.js'
+import * as OPCUA from "opcua-client"
 
 export type AttributeValueType = {
   name: string
-  attributeId: number
-  value: any
+  attributeId: OPCUA.AttributeIds
+  value: OPCUA.DataValue
 }
 
 export type NodeType = {
-  nodeid: string
+  nodeid: OPCUA.NodeId
   label: string
   nodes: NodeType[]
 }
@@ -26,14 +27,14 @@ export type LogEntryType = {
 }
 
 export type UaStateType = {
-  server: UAServer | undefined
+  server: OPCUA.UAServer | undefined
   webSockURL: string
   root: NodeType
   needAuth: boolean
   messages: LogEntryType[]
 }
 
-function opcuaWebSockURL() {
+function opcuaWebSockURL(): string {
   // when we a in defelopment mode then
   // web page is running inside vite dev server
   // and the same time backed is running with mako: mako in linux usually
@@ -57,12 +58,12 @@ function opcuaWebSockURL() {
 }
 
 export const uaApplication = defineStore('uaApplication', () => {
-  const server = ref<UAServer | undefined>(undefined)
+  const server = ref<OPCUA.UAServer | undefined>(undefined)
 
   const webSockURL = ref(opcuaWebSockURL())
   const needAuth = ref(false)
   const root = ref<NodeType>({
-    nodeid: 'i=84',
+    nodeid: new OPCUA.NodeId('i=84'),
     label: 'RootFolder',
     nodes: []
   })
@@ -86,29 +87,28 @@ export const uaApplication = defineStore('uaApplication', () => {
 
   async function connect(endpoint: any) {
     try {
-      onMessage(LogMessageType.Info, 'Connecting to websocket ' + webSockURL.value)
-      const srv = new UAServer(webSockURL.value)
-      await srv.connectWebSocket()
+      const srv = createServer(endpoint.EndpointUrl, uaApplication().opcuaWebSockURL())
+      await srv.connect()
 
-      onMessage(LogMessageType.Info, 'Connecting to endpoint ' + endpoint.endpointUrl)
-      await srv.hello(endpoint.endpointUrl)
+      onMessage(LogMessageType.Info, 'Connecting to endpoint ' + endpoint.EndpointUrl)
+      await srv.hello(endpoint.EndpointUrl)
 
       onMessage(LogMessageType.Info, 'Opening secure channel')
       await srv.openSecureChannel(
         360000,
-        endpoint.securityPolicyUri,
-        endpoint.securityMode,
-        endpoint.serverCertificate
+        endpoint.SecurityPolicyUri,
+        endpoint.SecurityMode,
+        endpoint.ServerCertificate
       )
 
       onMessage(LogMessageType.Info, 'Creating session')
       await srv.createSession('opcua web session', 3600000)
 
-      onMessage(LogMessageType.Info, 'Logging to OPCUA server')
+      onMessage(LogMessageType.Info, 'Logging to OPCUA server:' + endpoint.Token.Identity + ' with policy ' + endpoint.Token.TokenType.PolicyId)
       await srv.activateSession(
-        endpoint.token.policyId,
-        endpoint.token.identity,
-        endpoint.token.secret
+        endpoint.Token.TokenType.PolicyId,
+        endpoint.Token.Identity,
+        endpoint.Token.Secret
       )
 
       onMessage(LogMessageType.Info, 'Connected to OPCUA server')
@@ -131,14 +131,17 @@ export const uaApplication = defineStore('uaApplication', () => {
       }
 
       onMessage(LogMessageType.Info, 'Browsing nodeID ' + node.nodeid)
-      const resp: any = await server.value.browse(node.nodeid)
-      resp.results.forEach((result: any) => {
-        result.references.forEach((ref: any) => {
-          node.nodes.push({
-            nodeid: ref.nodeId,
-            label: ref.browseName.name,
-            nodes: []
-          })
+      const resp: any = await server.value.browse(node.nodeid.toString())
+      resp.Results.forEach((result: any) => {
+          if (!Array.isArray(result.References))
+            return
+
+          result.References.forEach((ref: any) => {
+            node.nodes.push({
+              nodeid: ref.NodeId,
+              label: ref.BrowseName.Name,
+              nodes: []
+            })
         })
       })
     } catch (e) {
@@ -154,13 +157,13 @@ export const uaApplication = defineStore('uaApplication', () => {
 
       onMessage(LogMessageType.Info, 'Reading attributes ' + nodeId)
       const resp: any = await server.value.read(nodeId)
-      const attributes = resp.results.filter((r: any, index: number) => {
-        if (r.statusCode == 0) {
-          r.attributeId = index
-          r.name = OPCUA.getAttributeName(index)
+      const attributes = resp.Results.filter((r: any, index: number) => {
+        if (r.StatusCode == 0) {
+          r.AttributeId = index
+          r.Name = OPCUA.getAttributeName(index)
         }
 
-        return r.statusCode == 0
+        return r.StatusCode == 0
       })
       return attributes
     } catch (e) {

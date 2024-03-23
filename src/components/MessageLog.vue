@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch } from 'vue';
-import { LogMessageType, uaApplication, LogEntryType } from '../stores/UaState'
+import { LogMessageType, uaApplication } from '../stores/UaState'
 
 const messages = uaApplication().messages
 
@@ -26,14 +26,14 @@ function cleaMessages() {
 <template>
   <div class="ua-messages">
     <div class="ua-messages-top">
-      <button type="button" class="btn btn-secondary btn-sm" 
+      <button type="button" class="btn btn-secondary btn-sm"
         style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;"
         v-on:click.prevent="cleaMessages">
           Clear messages
       </button>
     </div>
     <div id="ua-messages" class="ua-messages-content">
-        <div class="ua-messages-div" 
+        <div class="ua-messages-div"
           :class="{'ua-messages-div-err' : msg.type == LogMessageType.Error}"
           v-for="(msg, index) in messages" v-bind:key="index">
           <div class="ua-messaes-type" >
@@ -71,8 +71,8 @@ function cleaMessages() {
   grid-template-columns: 30px auto 120px;
   grid-gap: 15px;
   padding: 5px 0;
-  margin: 0px; 
-  border-collapse: collapse;  
+  margin: 0px;
+  border-collapse: collapse;
   font-size: 12px;
   align-items: center;
   background: #030329;

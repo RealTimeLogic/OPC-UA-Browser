@@ -1,4 +1,4 @@
-trace("Initializing OPCUA")
+tracep(false, 5, "Initializing OPCUA")
 local ua = require("opcua.api")
 local init = require("opcua.init")
 
@@ -8,12 +8,13 @@ local gettime=os.time
 
 local function getHostName()
   local hostname
-  if os.execute() then
+  if os and os.execute and os.execute() then
     local f = _G.io.popen("hostname")
     hostname = f:read("*a")
   else
     local sock = sock.connect("google.com", 80)
-    hostname = sock:peername()
+    local _,_,ips = string.find(sock:sockname(), "(%d+.%d+.%d+.%d+)")
+    hostname = ips
   end
 
   hostname = string.gsub(hostname, "[\n\r]", "")
@@ -21,7 +22,7 @@ local function getHostName()
 end
 
 local function getDefaultCert(fileName)
-  trace("Use embedded OPCUA certificates")
+  tracep(false, 5, "Use embedded OPCUA certificates")
   local keyPath = "."..fileName..".key"
   local certPath = "."..fileName..".pem"
   return certPath, keyPath, _ENV.app.io
@@ -45,34 +46,22 @@ local function writeFile(fio, fileName, data)
   return true
 end
 
-local function genOPCUACert(genFunc, hostname, applicationUri, fileName)
-  local hio = ba.openio("home")
-  if not hio then
-    trace("Cannot open homeio")
-    return getDefaultCert(fileName)
-  end
-
-  if not hio:stat("cert") and not hio:mkdir("cert") then
-    trace("Cannot create directory "..hio:realpath("cert"))
-    return getDefaultCert(fileName)
-  end
-
-  local cio = ba.mkio(hio, "cert")
+local function genOPCUACert(certIo, genFunc, hostname, applicationUri, fileName)
   local keyName = fileName..".key"
   local certName = fileName..".pem"
-  local keyHandle = cio:open(keyName)
-  local certHandle = cio:open(certName)
+  local keyHandle = certIo:open(keyName)
+  local certHandle = certIo:open(certName)
   if not keyHandle or not certHandle then
     local cert, key = genFunc(hostname, applicationUri)
-    if not writeFile(cio, certName, cert) then
+    if not writeFile(certIo, certName, cert) then
       return getDefaultCert(fileName)
     end
-    if not writeFile(cio, keyName, key)then
+    if not writeFile(certIo, keyName, key)then
       return getDefaultCert(fileName)
     end
   end
 
-  return cio:realpath(certName), cio:realpath(keyName)
+  return certIo:realpath(certName), certIo:realpath(keyName)
 end
 
 -- Connect logging traces
@@ -90,66 +79,172 @@ ua.trace.err = function(msg)
 end
 
 local hostname = getHostName()
+-- ua.debug()
 
-trace("Create OPCUA client")
--- Load and check client configuration file
-local clientConfig = _ENV.app.io:dofile(".opcua_client_config", _ENV)
-local certPath, keyPath, certIo = genOPCUACert(init.genClientCertificate, hostname, clientConfig.applicationUri, "opcua_client")
-clientConfig.certificate = certPath
-clientConfig.key = keyPath
-clientConfig.io = certIo
+local clientConfig
+local serverConfigs
+local certIo
+local suc, makoConf = pcall(require, "loadconf")
+if suc then
+  tracep(false, 5, "Loaded mako.conf")
+  certIo = ba.openio("home")
+  if not certIo:stat("cert") and not certIo:mkdir("cert") then
+    error(false, 5, "Cannot create directory "..certIo:realpath("cert"))
+  end
+
+  local cio = ba.mkio(certIo, "cert")
+
+  if makoConf.uaClient then
+    clientConfig = makoConf.uaClient
+    clientConfig.io = _G.io
+    clientConfig.certificate, clientConfig.key = genOPCUACert(cio, init.genClientCertificate, hostname, clientConfig.applicationUri, "opcua_client")
+  end
+
+  serverConfigs = makoConf.uaServers or false
+  if type(serverConfigs) == 'table' then
+    for i, serverConfig in ipairs(serverConfigs) do
+      serverConfig.io = _G.io
+      serverConfig.certificate, serverConfig.key = genOPCUACert(cio, init.genClientCertificate, hostname, clientConfig.applicationUri, "opcua_server"..tostring(i))
+    end
+  end
+end
+
+if clientConfig == nil then
+  tracep(false, 5, "Loading OPCUA client config from file '.opcua_client_config'")
+  clientConfig = _ENV.app.io:dofile(".opcua_client_config", _ENV)
+  clientConfig.io = _ENV.app.io
+end
+
+if serverConfigs == nil then
+  tracep(false, 5, "Loading OPCUA server configuration from .opcua_server_config.lua")
+  local config = _ENV.app.io:dofile(".opcua_server_config", _ENV)
+  serverConfigs = config
+
+  if serverConfigs then
+    for i, serverConfig in ipairs(serverConfigs) do
+      serverConfig.io = _ENV.app.io
+    end
+  end
+end
+
+---
+--- OPCUA client
+---
 
 checkConfig.client(clientConfig)
 _G.clientConfig = clientConfig
 
-trace("Start OPCUA server")
-local serverConfig = require("loadconf").opc
-if not serverConfig then
-  serverConfig = _ENV.app.io:dofile(".opcua_server_config", _ENV)
+---
+---  OPCUA server
+---
+
+local users = makoConf and makoConf.users
+if users == nil then
+  users = {
+    admin = "admin"
+  }
 end
 
-local certPath, keyPath, certIo = genOPCUACert(init.genServerCertificate, hostname, serverConfig.applicationUri, "opcua_server")
-serverConfig.endpointUrl = string.format("opc.tcp://%s:%d", hostname, serverConfig.listenPort)
-serverConfig.certificate = certPath
-serverConfig.key = keyPath
-serverConfig.io = certIo
-checkConfig.server(serverConfig)
+local function authenticate(tokenType, token, user)
+  local accessPermitted = false
+  if tokenType == "anonymous" then
+    tracep(false, 5, "Anonymous token")
+    accessPermitted = true
+  elseif tokenType == "username" then
+    tracep(false, 5, string.format("Checking user name '%s' and password.", user))
+    local password = users[user]
+    if password ~= nil and token == password then
+      accessPermitted = true
+    end
+  elseif tokenType == "x509" then
+    tracep(false, 5, "Checking user certificate.")
+    local cert = ba.parsecert(token)
+    -- if cert ~= nil and makoConf.users[cert.subject.commonname] ~= nil then
+    if cert ~= nil then
+      tracep(false, 5, "x509 certificate commom name: ", cert.subject.commonname)
+      accessPermitted = true
+    end
+  end
 
-local ok
-ok, uaServer = pcall(ua.newServer, serverConfig)
-if not ok then
-   trace("Error: server too old for OPCUA example: "..uaServer)
-   return
+  if accessPermitted then
+    tracep(false, 5, "Access permitted")
+  else
+    tracep(false, 5, "Access denied")
+  end
+
+  return accessPermitted
 end
 
-local function demoAddon(services)
-  local objects = "i=40"
-  io:dofile(".add_variables.lua")(services, objects)
+uaServers = {}
+-- if need to disable OPCUA server then set 'uaServer' to false
+-- in mako.conf file
+if serverConfigs == false then
+  tracep(false, 5, "OPCUA server diasabled in mako.conf file")
+  serverConfigs = {}
 end
 
-uaServer:initialize(demoAddon)
-uaServer:run()
+for _, serverConfig in ipairs(serverConfigs) do
+  tracep(false, 5, "Start OPCUA server")
 
-function onunload()
-  trace("Stopping OPC-UA server")
-  uaServer:shutdown()
+  serverConfig.authenticate = authenticate
+
+  -- Create HTTP and HTTPS endpoints since we don't know hostname before server is started
+  -- if endpoint URL has only scheme then add hostname, port and http directory
+  for _, endpoint in ipairs(serverConfig.endpoints) do
+    local endpointUrl = endpoint.endpointUrl
+    if endpointUrl == "http://" or endpointUrl == "opc.http://" then
+      endpointUrl = string.format("%s%s:%d/%s", endpointUrl, hostname, mako and mako.port or 80, _ENV.dir:baseuri())
+    elseif endpointUrl == "https://" or endpointUrl == "opc.https://" then
+      endpointUrl = string.format("%s%s:%d/%s", endpointUrl, hostname, mako and mako.sslport or 443, _ENV.dir:baseuri())
+    elseif endpointUrl == "opc.tcp://" then
+      endpointUrl = string.format("%s%s:%d", endpointUrl, hostname, endpoint.listenPort or "4841")
+    else
+      endpointUrl = nil
+    end
+
+    if endpointUrl and serverConfig.httpDirName then
+      endpointUrl = string.format("%s/%s", endpointUrl, serverConfig.httpDirName)
+    end
+
+    if endpointUrl then
+      endpoint.endpointUrl = endpointUrl
+    end
+  end
+
+  -- if server certificate not specified then generate one
+  if not serverConfig.certificate then
+    local certPath, keyPath = genOPCUACert(serverConfig.io, init.genServerCertificate, hostname, serverConfig.applicationUri, "opcua_server")
+    serverConfig.certificate = certPath
+    serverConfig.key = keyPath
+  end
+
+  -- Check server configuration and expand all options
+  checkConfig.server(serverConfig)
+
+  local ok, uaServer = pcall(ua.newServer, serverConfig)
+  if not ok then
+    tracep(false, 5, "Error: server too old for OPCUA example: "..uaServer)
+    return
+  end
+
+  local function demoAddon(services)
+    local objects = "i=85"
+    io:dofile(".add_variables.lua")(services, objects)
+  end
+
+  uaServer:initialize(demoAddon)
+  uaServer:run()
+  table.insert(uaServers, uaServer)
 end
 
-_G.uaServices = uaServer.services
+onunload = function()
+  for i, uaServer in ipairs(uaServers) do
+    tracep(false, 5, "Stopping OPC-UA server "..i.."...")
+    uaServer:shutdown()
+    tracep(false, 5, "OPC-UA server "..i.." stopped")
+  end
+end
 
-trace("OPCUA ready")
+_G.uaServers = uaServers
 
-local function waitForDebugger()
-
-   -- Load the Lua Debug Monitor "ldbgmon" and call the connect() method
-   -- client=false -> bind (act as server). Default is to act as client.
-   if require"ldbgmon".connect{client=false} then
-      trace"The debugger should stop the program on this line"
-      -- Hit F5 to continue
-   else
-      trace"Debugger connection failed"
-   end
-
-end -- waitForDebugger
-
---waitForDebugger()
+tracep(false, 5, "OPCUA ready")

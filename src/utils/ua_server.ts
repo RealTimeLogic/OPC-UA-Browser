@@ -1,150 +1,5 @@
-'use strict'
-
-const attributeNames = [
-  'NodeId',
-  'NodeClass',
-  'BrowseName',
-  'DisplayName',
-  'Description',
-  'WriteMask',
-  'UserWriteMask',
-  'IsAbstract',
-  'Symmetric',
-  'InverseName',
-  'ContainsNoLoops',
-  'EventNotifier',
-  'Value',
-  'DataType',
-  'ValueRank',
-  'ArrayDimensions',
-  'AccessLevel',
-  'UserAccessLevel',
-  'MinimumSamplingInterval',
-  'Historizing',
-  'Executable',
-  'UserExecutable',
-  'DataTypeDefinition',
-  'RolePermissions',
-  'UserRolePermissions',
-  'AccessRestrictions',
-  'AccessLevelEx'
-]
-
-const OPCUA = {
-  SecurePolicyUri: {
-    None: 'http://opcfoundation.org/UA/SecurityPolicy#None',
-    Basic128Rsa15: 'http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15',
-    Basic256: 'http://opcfoundation.org/UA/SecurityPolicy#Basic256',
-    Basic256Sha256: 'http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256',
-    Aes128Sha256RsaOaep: 'http://opcfoundation.org/UA/SecurityPolicy#Aes128_Sha256_RsaOaep',
-    Aes256Sha256RsaPss: 'http://opcfoundation.org/UA/SecurityPolicy#Aes256_Sha256_RsaPss'
-  },
-
-  TransportProfile: {
-    Binary: 'http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary'
-  },
-
-  MessageSecurityMode: {
-    None: 1,
-    Sign: 2,
-    SignAndEncrypt: 3
-  },
-
-  UserTokenType: {
-    Anonymous: 0,
-    UserName: 1,
-    Certificate: 2,
-    IssuedToken: 3
-  },
-
-  getUserTokenTypeName(token: any) {
-    switch (token.tokenType) {
-      case 0:
-        return 'Anonymous'
-      case 1:
-        return 'UserName'
-      case 2:
-        return 'Certificate'
-      case 3: {
-        switch (token.issuedTokenType) {
-          case 'http://opcfoundation.org/UA/UserToken#Azure':
-            return 'Azure'
-          case 'http://opcfoundation.org/UA/Authorization#JWT':
-            return 'JWT'
-          case 'http://opcfoundation.org/UA/Authorization#OAuth2':
-            return 'OAuth2'
-          default:
-            return 'IssuedToken'
-        }
-      }
-    }
-  },
-
-  getMessageModeName(mode: number) {
-    switch (mode) {
-      case 1:
-        return 'None'
-      case 2:
-        return 'Sign'
-      case 3:
-        return 'SignAndEncrypt'
-      default:
-        return mode
-    }
-  },
-
-  getAttributeName(attrId: number): string {
-    return attributeNames[attrId]
-  },
-
-  getPolicyUri(name: string): string {
-    switch (name) {
-      case 'Basic128Rsa15':
-        return 'http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15'
-
-      case 'Basic256':
-        return 'http://opcfoundation.org/UA/SecurityPolicy#Basic256'
-
-      case 'Basic256Sha256':
-        return 'http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256'
-
-      case 'None':
-        return 'http://opcfoundation.org/UA/SecurityPolicy#None'
-
-      case 'Aes128_Sha256_RsaOaep':
-        return 'http://opcfoundation.org/UA/SecurityPolicy#Aes128_Sha256_RsaOaep'
-
-      case 'Aes256_Sha256_RsaPss':
-        return 'http://opcfoundation.org/UA/SecurityPolicy#Aes256_Sha256_RsaPss'
-    }
-
-    throw Error("Invalid security policy name '" + name + "'")
-  },
-
-  getPolicyName(uri: string): string {
-    switch (uri) {
-      case 'http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15':
-        return 'Basic128Rsa15'
-
-      case 'http://opcfoundation.org/UA/SecurityPolicy#Basic256':
-        return 'Basic256'
-
-      case 'http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256':
-        return 'Basic256Sha256'
-
-      case 'http://opcfoundation.org/UA/SecurityPolicy#None':
-        return 'None'
-
-      case 'http://opcfoundation.org/UA/SecurityPolicy#Aes128_Sha256_RsaOaep':
-        return 'Aes128_Sha256_RsaOaep'
-
-      case 'http://opcfoundation.org/UA/SecurityPolicy#Aes256_Sha256_RsaPss':
-        return 'Aes256_Sha256_RsaPss'
-    }
-
-    return uri
-  }
-}
+// import { UAServer, UaHttpClient } from "opcua-client"
+import { UAServer } from "opcua-client"
 
 type Request = {
   reject(error: any): void
@@ -153,18 +8,19 @@ type Request = {
   timeout: any
 }
 
-class UAServer {
-  Requests: Map<number, Request> = new Map()
-  RequestCounter: number = 0
-  WebSock?: WebSocket
+export class RtlProxyClient implements UAServer {
+  private Requests: Map<number, Request> = new Map()
+  private RequestCounter: number = 0
+  private WebSock?: WebSocket
   readonly SiteURL: string
-  disconnectCallback: any
+  private readonly disconnectCallback?: any
 
-  constructor(siteURL: string) {
+  constructor(siteURL: string, disconnectCallback?: any) {
     this.SiteURL = siteURL
+    this.disconnectCallback = disconnectCallback
   }
 
-  _reset(e: any) {
+  private _reset(e: any) {
     for (const request of this.Requests.entries()) {
       const val = request[1]
       val.reject(e)
@@ -175,14 +31,13 @@ class UAServer {
       return this.disconnectCallback(e)
   }
 
-  async connectWebSocket(disconnectCallback: any = null) {
+  private async connectWebSocket() {
     return new Promise((resolve, reject) => {
       if (this.WebSock != undefined) {
         reject(new Error('already connected'))
         return
       }
 
-      this.disconnectCallback = disconnectCallback
       this.WebSock = new WebSocket(this.SiteURL)
       this.WebSock.onopen = () => {
         resolve(this)
@@ -204,12 +59,12 @@ class UAServer {
           const resp = JSON.parse(msg.data)
           const request = this.Requests.get(resp.id)
           if (!request) return
-          if (resp.error) {
-            request.reject(new Error(resp.error))
+          if (resp.Error) {
+            request.reject(new Error(resp.Error))
           } else {
             clearTimeout(request.timeout)
             this.Requests.delete(resp.id)
-            request.resolve(resp.data)
+            request.resolve(resp.Data)
           }
         } catch(e) {
           throw new Error('Invalid JSON response: ' + msg.data)
@@ -218,7 +73,7 @@ class UAServer {
     })
   }
 
-  async disconnectWebSocket() {
+  private async disconnectWebSocket() {
     return new Promise((resolve, reject) => {
       if (this.WebSock != undefined) {
         this.WebSock.close()
@@ -230,12 +85,12 @@ class UAServer {
     })
   }
 
-  nextRequestId() {
+  private nextRequestId() {
     this.RequestCounter += 1
     return this.RequestCounter
   }
 
-  sendRequest(request: any) {
+  private async sendRequest(request: any) {
     return new Promise((resolve, reject) => {
       if (this.WebSock == undefined) {
         reject(new Error('No connection to web socket server.'))
@@ -260,99 +115,132 @@ class UAServer {
     })
   }
 
-  hello(endpointUrl: string) {
-    const config = {
-      endpointUrl: endpointUrl
-    }
+  async connect() {
+    return this.connectWebSocket()
+  }
+
+  async disconnect() {
+    return this.disconnectWebSocket()
+  }
+
+  async hello(endpointUrl: string) {
 
     const request = {
-      connectEndpoint: config
+      ConnectEndpoint: {
+        EndpointUrl: endpointUrl
+      }
     }
 
     return this.sendRequest(request)
   }
 
-  openSecureChannel(
+  async openSecureChannel(
     timeoutMs: number,
     securityPolicyUri: string,
     securityMode: number,
     serverCertificate: string | null = null
   ) {
     const request = {
-      openSecureChannel: {
-        timeoutMs: timeoutMs,
-        securityPolicyUri: securityPolicyUri,
-        securityMode: securityMode,
-        serverCertificate: serverCertificate
+      OpenSecureChannel: {
+        TimeoutMs: timeoutMs,
+        SecurityPolicyUri: securityPolicyUri,
+        SecurityMode: securityMode,
+        ServerCertificate: serverCertificate
       }
     }
     return this.sendRequest(request)
   }
 
-  closeSecureChannel() {
+  async closeSecureChannel() {
     const request = {
-      closeSecureChannel: {}
+      CloseSecureChannel: {}
     }
+
     return this.sendRequest(request)
   }
 
-  createSession(sessionName: string, timeoutMs: number) {
+  async createSession(sessionName: string, timeoutMs: number) {
     const request = {
-      createSession: {
-        sessionName: sessionName,
-        sessionTimeout: timeoutMs
+      CreateSession: {
+        SessionName: sessionName,
+        SessionTimeout: timeoutMs
       }
     }
     return this.sendRequest(request)
   }
 
-  activateSession(
-    policyId: string,
-    identity: string | undefined = undefined,
-    secret: string | undefined = undefined
-  ) {
+  async activateSession(policyId: any, identity?: string, secret?: string) {
     const request = {
-      activateSession: {
-        policyId: policyId,
-        secret: secret,
-        identity: identity
+      ActivateSession: {
+        PolicyId: policyId,
+        Secret: secret,
+        Identity: identity
       }
     }
 
     return this.sendRequest(request)
   }
 
-  closeSession() {
+  async closeSession() {
     const request = {
-      closeSession: {}
+      CloseSession: {}
     }
     return this.sendRequest(request)
   }
 
-  getEndpoints() {
+  async findServers(endpointUrl?: string, serverUris?: string[])  {
+
     const request = {
-      getEndpoints: {}
+      FindServers: {
+        EndpointUrl: endpointUrl,
+        ServerUris: serverUris
+      }
     }
+
     return this.sendRequest(request)
   }
 
-  browse(nodeId: string) {
+  async getEndpoints(endpointUrl?: string) {
     const request = {
-      browse: {
-        nodeId: nodeId
+      GetEndpoints: {
+        EndpointUrl: endpointUrl
+      }
+    }
+
+    return this.sendRequest(request)
+  }
+
+  async browse(nodeId: string): Promise<any> {
+    const request = {
+      Browse: {
+        NodeId: nodeId.toString()
       }
     }
     return this.sendRequest(request)
   }
 
-  read(nodeId: string) {
+  async read(nodeId: string | string[]) {
     const request = {
-      read: {
-        nodeId: nodeId
+      Read: {
+        NodeId: nodeId.toString()
       }
     }
     return this.sendRequest(request)
   }
 }
 
-export { UAServer, OPCUA }
+export function createServer(endpointUrl: string, wsUrl: string): UAServer {
+  return new RtlProxyClient(wsUrl)
+
+  // if (endpointUrl.startsWith("opc.http://"))
+  //   endpointUrl = endpointUrl.replace("opc.http", "http")
+
+  // const endpoint = new URL(endpointUrl)
+  // let srv: UAServer
+  // if (endpointUrl.startsWith("opc.tcp://") || window.location.origin !== endpoint.origin)
+  //   srv = new RtlProxyClient(wsUrl)
+  // else
+  //   srv = new UaHttpClient(endpointUrl)
+
+  // return srv
+}

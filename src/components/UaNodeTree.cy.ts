@@ -1,6 +1,6 @@
 import UaNodeTree from './UaNodeTree.vue'
 import { uaApplication } from '../stores/UaState'
-import { OPCUA } from '../utils/ua_server'
+import * as OPCUA from 'opcua-client'
 
 import { createPinia } from 'pinia'
 

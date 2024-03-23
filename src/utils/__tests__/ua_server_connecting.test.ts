@@ -1,52 +1,55 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import { UAServer, OPCUA } from '../ua_server'
+import * as OPCUA from 'opcua-client'
+import { RtlProxyClient as UAServer } from '../ua_server'
 
-const WebSockURL = 'ws://localhost/opcua_client.lsp'
-const EndpointURL = 'opc.tcp://localhost:4841'
+
+const WebSockURL = 'ws://localhost:9357/opcua_client.lsp'
+const EndpointURL = 'opc.tcp://vm-ubuntu:4841/opcua/'
 
 describe('Websocket connecting', async () => {
   it('Connects to websocket', async () => {
     const server = new UAServer(WebSockURL)
-    const connectResult = await server.connectWebSocket()
-    expect(connectResult).to.equal(server)
+    await server.connect()
+    const connectResult = await server.hello(EndpointURL)
+    expect(connectResult).to.equal(undefined)
 
-    const disconnectResult = await server.disconnectWebSocket()
+    const disconnectResult = await server.disconnect()
     expect(disconnectResult).to.equal(server)
   })
 
   it('second connect not possible', async () => {
     const server = new UAServer(WebSockURL)
-    const connectResult = await server.connectWebSocket()
+    const connectResult = await server.connect()
     expect(connectResult).to.equal(server)
 
-    await expect(server.connectWebSocket()).rejects.toThrowError(new Error('already connected'))
+    await expect(server.connect()).rejects.toThrowError(new Error('already connected'))
 
-    const disconnectResult = await server.disconnectWebSocket()
+    const disconnectResult = await server.disconnect()
     expect(disconnectResult).to.equal(server)
   })
 
   it('second disconnect not possible', async () => {
     const server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
-    await server.disconnectWebSocket()
-    await expect(server.disconnectWebSocket()).rejects.toThrowError(
+    await server.connect()
+    await server.disconnect()
+    await expect(server.disconnect()).rejects.toThrowError(
       new Error('already disconnected')
     )
   })
 
   it('Disconnect callback called', async () => {
-    const server = new UAServer(WebSockURL)
-
     let error = undefined
     const onDisconnect = (e: Error) => {
       error = e
     }
 
-    const connectResult = await server.connectWebSocket(onDisconnect)
+    const server = new UAServer(WebSockURL, onDisconnect)
+
+    const connectResult = await server.connect()
     expect(connectResult).to.equal(server)
 
-    server.WebSock?.close()
+    server.disconnect()
 
     expect(error).not.toEqual(null)
   })
@@ -57,11 +60,11 @@ describe('Connect to OPCUA endpoint', async () => {
 
   beforeEach(async () => {
     server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
   })
 
   afterEach(async () => {
-    await server.disconnectWebSocket()
+    await server.disconnect()
   })
 
   it('Connect/disconnect OPCUA server', async () => {
@@ -76,9 +79,10 @@ describe('Connect to OPCUA endpoint', async () => {
 })
 
 describe('OpenSecureChannel SecurePolicy None', async () => {
+
   it('OpenSecure channel without connect', async () => {
     const server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
     const channel = server.openSecureChannel(
       3600000,
       OPCUA.SecurePolicyUri.None,
@@ -87,12 +91,12 @@ describe('OpenSecureChannel SecurePolicy None', async () => {
 
     expect(channel).rejects.toThrowError()
 
-    await server.disconnectWebSocket()
+    await server.disconnect()
   })
 
   it('Open/Close secure channel', async () => {
     const server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
     await server.hello(EndpointURL)
     const channel = await server.openSecureChannel(
       3600000,
@@ -105,14 +109,14 @@ describe('OpenSecureChannel SecurePolicy None', async () => {
     const closeChannel = await server.closeSecureChannel()
     expect(closeChannel).not.toBeDefined()
 
-    await server.disconnectWebSocket()
+    await server.disconnect()
   })
 })
 
 describe('GetEndpoints', async () => {
   it('Works', async () => {
     const server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
     await server.hello(EndpointURL)
     await server.openSecureChannel(
       3600000,
@@ -124,12 +128,12 @@ describe('GetEndpoints', async () => {
     expect(endpoints).to.toBeDefined()
 
     await server.closeSecureChannel()
-    await server.disconnectWebSocket()
+    await server.disconnect()
   })
 
   it('Open Secure Channel all modes', async () => {
     const server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
     await server.hello(EndpointURL)
     await server.openSecureChannel(
       3600000,
@@ -138,29 +142,29 @@ describe('GetEndpoints', async () => {
     )
     const resp: any = await server.getEndpoints()
     await server.closeSecureChannel()
-    await server.disconnectWebSocket()
+    await server.disconnect()
 
-    for (let i = 0; i < resp.endpoints.length; i++) {
-      const endpoint: any = resp.endpoints[i]
-      if (endpoint.securityPolicyUri == OPCUA.SecurePolicyUri.None) continue
+    for (let i = 0; i < resp.Endpoints.length; i++) {
+      const endpoint: any = resp.Endpoints[i]
+      if (endpoint.SecurityPolicyUri == OPCUA.SecurePolicyUri.None) continue
 
       it(
-        'Can connect to: ' + endpoint.securityPolicyUri + ' mode ' + endpoint.securityMode,
+        'Can connect to: ' + endpoint.SecurityPolicyUri + ' mode ' + endpoint.SecurityMode,
         async () => {
           const server = new UAServer(WebSockURL)
-          await server.connectWebSocket()
+          await server.connect()
           await server.hello(EndpointURL)
 
           const channel = await server.openSecureChannel(
             3600000,
-            endpoint.securityPolicyUri,
-            endpoint.securityMode,
-            endpoint.serverCertificate
+            endpoint.SecurityPolicyUri,
+            endpoint.SecurityMode,
+            endpoint.ServerCertificate
           )
 
           expect(channel).to.toBeDefined()
           await server.closeSecureChannel()
-          await server.disconnectWebSocket()
+          await server.disconnect()
         }
       )
     }
@@ -171,7 +175,7 @@ describe('Session', async () => {
   let server: UAServer
   beforeEach(async () => {
     server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
     await server.hello(EndpointURL)
     await server.openSecureChannel(
       3600000,
@@ -182,7 +186,7 @@ describe('Session', async () => {
 
   afterEach(async () => {
     await server.closeSecureChannel()
-    await server.disconnectWebSocket()
+    await server.disconnect()
   })
 
   it('CreateSession', async () => {
@@ -200,7 +204,7 @@ describe('Authentication', async () => {
 
   beforeEach(async () => {
     server = new UAServer(WebSockURL)
-    await server.connectWebSocket()
+    await server.connect()
     await server.hello(EndpointURL)
     await server.openSecureChannel(
       3600000,
@@ -208,8 +212,8 @@ describe('Authentication', async () => {
       OPCUA.MessageSecurityMode.None
     )
     const session: any = await server.createSession('test_js_session', 3600000)
-    for (const endpoint of session.serverEndpoints) {
-      if (endpoint.securityPolicyUri == OPCUA.SecurePolicyUri.Basic128Rsa15) {
+    for (const endpoint of session.ServerEndpoints) {
+      if (endpoint.SecurityPolicyUri == OPCUA.SecurePolicyUri.Basic128Rsa15) {
         basic128Rsa15Edpoint = endpoint
         return
       }
@@ -219,14 +223,14 @@ describe('Authentication', async () => {
   afterEach(async () => {
     await server.closeSession()
     await server.closeSecureChannel()
-    await server.disconnectWebSocket()
+    await server.disconnect()
   })
 
   it('Anonymous', async () => {
     let anonymousPolicyId: string = ''
-    for (const tokenPolicy of basic128Rsa15Edpoint.userIdentityTokens) {
-      if (tokenPolicy.tokenType == OPCUA.UserTokenType.Anonymous) {
-        anonymousPolicyId = tokenPolicy.policyId
+    for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
+      if (tokenPolicy.TokenType == OPCUA.UserTokenType.Anonymous) {
+        anonymousPolicyId = tokenPolicy.PolicyId
       }
     }
 
@@ -237,9 +241,9 @@ describe('Authentication', async () => {
 
   it('Username', async () => {
     let usernamePolicyId: string = ''
-    for (const tokenPolicy of basic128Rsa15Edpoint.userIdentityTokens) {
-      if (tokenPolicy.tokenType == OPCUA.UserTokenType.UserName) {
-        usernamePolicyId = tokenPolicy.policyId
+    for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
+      if (tokenPolicy.TokenType == OPCUA.UserTokenType.UserName) {
+        usernamePolicyId = tokenPolicy.PolicyId
         break
       }
     }
@@ -251,9 +255,9 @@ describe('Authentication', async () => {
 
   it('Username Invalid', async () => {
     let usernamePolicyId: string = ''
-    for (const tokenPolicy of basic128Rsa15Edpoint.userIdentityTokens) {
-      if (tokenPolicy.tokenType == OPCUA.UserTokenType.UserName) {
-        usernamePolicyId = tokenPolicy.policyId
+    for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
+      if (tokenPolicy.TokenType == OPCUA.UserTokenType.UserName) {
+        usernamePolicyId = tokenPolicy.PolicyId
         break
       }
     }
@@ -269,9 +273,9 @@ describe('Authentication', async () => {
 
   it('Username password null', async () => {
     let usernamePolicyId: string = ''
-    for (const tokenPolicy of basic128Rsa15Edpoint.userIdentityTokens) {
-      if (tokenPolicy.tokenType == OPCUA.UserTokenType.UserName) {
-        usernamePolicyId = tokenPolicy.policyId
+    for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
+      if (tokenPolicy.TokenType == OPCUA.UserTokenType.UserName) {
+        usernamePolicyId = tokenPolicy.PolicyId
         break
       }
     }
@@ -287,9 +291,9 @@ describe('Authentication', async () => {
 
   it('Certificate', async () => {
     let certificatePolicyId: string = ''
-    for (const tokenPolicy of basic128Rsa15Edpoint.userIdentityTokens) {
-      if (tokenPolicy.tokenType == OPCUA.UserTokenType.Certificate) {
-        certificatePolicyId = tokenPolicy.policyId
+    for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
+      if (tokenPolicy.TokenType == OPCUA.UserTokenType.Certificate) {
+        certificatePolicyId = tokenPolicy.PolicyId
         break
       }
     }

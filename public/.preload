@@ -84,6 +84,8 @@ local hostname = getHostName()
 local clientConfig
 local serverConfigs
 local certIo
+
+-- Try to load mako configuration file (Xedge32 has no 'localconf' module)
 local suc, makoConf = pcall(require, "loadconf")
 if suc then
   tracep(false, 5, "Loaded mako.conf")
@@ -94,42 +96,44 @@ if suc then
 
   local cio = ba.mkio(certIo, "cert")
 
+  -- Save certificates to the cert directory on local machine
+  -- for future reuse
   if makoConf.uaClient then
     clientConfig = makoConf.uaClient
     clientConfig.io = _G.io
     clientConfig.certificate, clientConfig.key = genOPCUACert(cio, init.genClientCertificate, hostname, clientConfig.applicationUri, "opcua_client")
   end
 
-  serverConfigs = makoConf.uaServers or false
+  -- To disable OPCUA server set 'uaServers' to false in mako.conf file
+  serverConfigs = makoConf.uaServers
   if type(serverConfigs) == 'table' then
     for i, serverConfig in ipairs(serverConfigs) do
       serverConfig.io = _G.io
-      serverConfig.certificate, serverConfig.key = genOPCUACert(cio, init.genClientCertificate, hostname, clientConfig.applicationUri, "opcua_server"..tostring(i))
+      serverConfig.certificate, serverConfig.key = genOPCUACert(cio, init.genServerCertificate, hostname, serverConfig.applicationUri, "opcua_server"..tostring(i))
     end
   end
 end
 
+-- If mako configuration file not found then load configuration from
+-- files embedded in the application
 if clientConfig == nil then
   tracep(false, 5, "Loading OPCUA client config from file '.opcua_client_config'")
   clientConfig = _ENV.app.io:dofile(".opcua_client_config", _ENV)
-  clientConfig.io = _ENV.app.io
 end
 
 if serverConfigs == nil then
-  tracep(false, 5, "Loading OPCUA server configuration from .opcua_server_config.lua")
+  tracep(false, 5, "Loading OPCUA server configuration from .opcua_server_config")
   local config = _ENV.app.io:dofile(".opcua_server_config", _ENV)
   serverConfigs = config
-
-  if serverConfigs then
-    for i, serverConfig in ipairs(serverConfigs) do
-      serverConfig.io = _ENV.app.io
-    end
-  end
 end
 
 ---
 --- OPCUA client
 ---
+
+if not clientConfig then
+  error("Cannot load OPCUA client configuration")
+end
 
 checkConfig.client(clientConfig)
 _G.clientConfig = clientConfig

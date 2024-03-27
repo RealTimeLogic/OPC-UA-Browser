@@ -26,6 +26,8 @@ local logging = {
 }
 
 local binaryServer = {
+  io = _ENV.app.io,
+
   -- Application name
   applicationName="RealTimeLogic OPCUA Server",
 
@@ -99,6 +101,8 @@ local binaryServer = {
 }
 
 local httpServer = {
+  io = _ENV.app.io,
+
   -- Application name
   applicationName="RealTimeLogic OPCUA Server",
 

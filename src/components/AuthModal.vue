@@ -388,11 +388,8 @@ function clearLocalStorages() {
 .modal {
 
   --bs-modal-bg: #24262B;
-  --bs-border-color: #262323;
   --bs-modal-border-color: var(--bs-border-color-translucent);
   --bs-modal-box-shadow: 0 0.125rem 0.25rem rgba(255, 255, 255, 0.15);
-  --bs-modal-header-border-color: var(--bs-border-color);
-  --bs-modal-footer-border-color: var(--bs-border-color);
 
   .btn-close {
     filter: invert(1);
@@ -401,7 +398,7 @@ function clearLocalStorages() {
   .endpoint-url {
     flex-grow: 1;
   }
-  .form-control {
+.form-control {
     background-color: #060606;
     border-color: #262323;
     color: #FFFFFF;

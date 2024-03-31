@@ -158,13 +158,15 @@ export const uaApplication = defineStore('uaApplication', () => {
       onMessage(LogMessageType.Info, 'Reading attributes ' + nodeId)
       const resp: any = await server.value.read(nodeId)
       const attributes = resp.Results.filter((r: any, index: number) => {
-        if (r.StatusCode == 0) {
+        if (r.StatusCode == 0 || !("StatusCode" in r)) {
           r.AttributeId = index
           r.Name = OPCUA.getAttributeName(index)
+          return true
         }
 
-        return r.StatusCode == 0
+        return false
       })
+
       return attributes
     } catch (e) {
       onMessage(LogMessageType.Error, e)

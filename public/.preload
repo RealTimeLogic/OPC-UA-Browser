@@ -82,7 +82,7 @@ local hostname = getHostName()
 -- ua.debug()
 
 local clientConfig
-local serverConfigs
+local serverConfig
 local certIo
 
 -- Try to load mako configuration file (Xedge32 has no 'localconf' module)
@@ -104,13 +104,11 @@ if suc then
     clientConfig.certificate, clientConfig.key = genOPCUACert(cio, init.genClientCertificate, hostname, clientConfig.applicationUri, "opcua_client")
   end
 
-  -- To disable OPCUA server set 'uaServers' to false in mako.conf file
-  serverConfigs = makoConf.uaServers
-  if type(serverConfigs) == 'table' then
-    for i, serverConfig in ipairs(serverConfigs) do
-      serverConfig.io = _G.io
-      serverConfig.certificate, serverConfig.key = genOPCUACert(cio, init.genServerCertificate, hostname, serverConfig.applicationUri, "opcua_server"..tostring(i))
-    end
+  -- To disable OPCUA server set 'uaServer' to false in mako.conf file
+  serverConfig = makoConf.uaServer
+  if type(serverConfig) == 'table' then
+    serverConfig.io = _G.io
+    serverConfig.certificate, serverConfig.key = genOPCUACert(cio, init.genServerCertificate, hostname, serverConfig.applicationUri, "opcua_server"..tostring(i))
   end
 end
 
@@ -121,10 +119,10 @@ if clientConfig == nil then
   clientConfig = _ENV.app.io:dofile(".opcua_client_config", _ENV)
 end
 
-if serverConfigs == nil then
+if serverConfig == nil then
   tracep(false, 5, "Loading OPCUA server configuration from .opcua_server_config")
   local config = _ENV.app.io:dofile(".opcua_server_config", _ENV)
-  serverConfigs = config
+  serverConfig = config
 end
 
 ---
@@ -179,15 +177,11 @@ local function authenticate(tokenType, token, user)
   return accessPermitted
 end
 
-uaServers = {}
+local baseUri = app.dir:baseuri().."opcua_client.lsp"
+
 -- if need to disable OPCUA server then set 'uaServer' to false
 -- in mako.conf file
-if serverConfigs == false then
-  tracep(false, 5, "OPCUA server diasabled in mako.conf file")
-  serverConfigs = {}
-end
-
-for _, serverConfig in ipairs(serverConfigs) do
+if type(serverConfig) == 'table' then
   tracep(false, 5, "Start OPCUA server")
 
   serverConfig.authenticate = authenticate
@@ -197,9 +191,9 @@ for _, serverConfig in ipairs(serverConfigs) do
   for _, endpoint in ipairs(serverConfig.endpoints) do
     local endpointUrl = endpoint.endpointUrl
     if endpointUrl == "http://" or endpointUrl == "opc.http://" then
-      endpointUrl = string.format("%s%s:%d/%s", endpointUrl, hostname, mako and mako.port or 80, _ENV.dir:baseuri())
+      endpointUrl = string.format("%s%s:%d%s", endpointUrl, hostname, mako and mako.port or 80, baseUri)
     elseif endpointUrl == "https://" or endpointUrl == "opc.https://" then
-      endpointUrl = string.format("%s%s:%d/%s", endpointUrl, hostname, mako and mako.sslport or 443, _ENV.dir:baseuri())
+      endpointUrl = string.format("%s%s:%d%s", endpointUrl, hostname, mako and mako.sslport or 443, baseUri)
     elseif endpointUrl == "opc.tcp://" then
       endpointUrl = string.format("%s%s:%d", endpointUrl, hostname, endpoint.listenPort or "4841")
     else
@@ -238,17 +232,19 @@ for _, serverConfig in ipairs(serverConfigs) do
 
   uaServer:initialize(demoAddon)
   uaServer:run()
-  table.insert(uaServers, uaServer)
+
+  _G.uaServer = uaServer
+  _G.httpServer = uaServer:createHttpDirectory()
 end
 
 onunload = function()
-  for i, uaServer in ipairs(uaServers) do
-    tracep(false, 5, "Stopping OPC-UA server "..i.."...")
-    uaServer:shutdown()
-    tracep(false, 5, "OPC-UA server "..i.." stopped")
+  if _G.uaServer then
+    tracep(false, 5, "Stopping OPC-UA server ")
+    _G.uaServer:shutdown()
+    _G.uaServer = nil
+    _G.httpServer = nil
+    tracep(false, 5, "OPC-UA server stopped")
   end
 end
-
-_G.uaServers = uaServers
 
 tracep(false, 5, "OPCUA ready")

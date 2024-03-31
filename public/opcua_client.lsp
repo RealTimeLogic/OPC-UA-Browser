@@ -192,5 +192,12 @@ if request:header"Sec-WebSocket-Key" then
       return
    end
 end
-response:senderror(426, "Upgrade to WebSocket")
+
+-- HTTP server
+if _G.httpServer then
+   _G.httpServer(request, response)
+else
+   response:senderror(426, "Upgrade to WebSocket")
+end
+
 ?>

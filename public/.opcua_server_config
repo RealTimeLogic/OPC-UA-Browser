@@ -7,23 +7,6 @@ users={
   admin = "12345"
 }
 
-local logging = {
-  socket = {
-    dbgOn = false,  -- debug logs of socket
-    infOn = true,  -- information logs about sockets
-    errOn = true,  -- Errors on sockets
-  },
-  binary = {
-    dbgOn = false,  -- Debugging traces about binary protocol. Print encoded message hex data.
-    infOn = true,  -- Information traces about binary protocol
-    errOn = true,  -- Errors in binary protocol
-  },
-  services = {
-    dbgOn = false,  -- Debugging traces about UA services work
-    infOn = true,  -- Informations traces
-    errOn = true,  -- Errors
-  }
-}
 
 local key = [[
 -----BEGIN PRIVATE KEY-----
@@ -107,6 +90,18 @@ local binaryServer = {
       -- optional. Will be taken from endpointUrl if absent.
       listenAddress="*",
     },
+    {
+      endpointUrl = "opc.https://"
+    },
+    {
+      endpointUrl = "https://"
+    },
+    {
+      endpointUrl = "opc.http://"
+    },
+    {
+      endpointUrl = "http://"
+    },
   },
 
   -- Size of buffer is allocated for one chunk.
@@ -144,80 +139,23 @@ local binaryServer = {
     }
   },
 
-  logging = logging
-}
-
-local httpServer = {
-  io = _ENV.app.io,
-
-  -- Application name
-  applicationName="RealTimeLogic OPCUA Server",
-
-  -- Application URI should be equal to
-  -- URI subject alternative name extention in the certificate
-  applicationUri="urn:RealTimeLogic:opcua:server",
-
-  -- UaExpert supports only http:// and https:// endpoint schemes
-  -- Prosys supports only opc.https:// endpoint schemes
-  endpoints = {
-    {
-      endpointUrl = "opc.http://"
+  logging = {
+    socket = {
+      dbgOn = false,  -- debug logs of socket
+      infOn = true,  -- information logs about sockets
+      errOn = true,  -- Errors on sockets
     },
-    {
-      endpointUrl = "http://"
+    binary = {
+      dbgOn = false,  -- Debugging traces about binary protocol. Print encoded message hex data.
+      infOn = true,  -- Information traces about binary protocol
+      errOn = true,  -- Errors in binary protocol
     },
-    {
-      endpointUrl = "opc.https://"
-    },
-    {
-      endpointUrl = "https://"
+    services = {
+      dbgOn = false,  -- Debugging traces about UA services work
+      infOn = true,  -- Informations traces
+      errOn = true,  -- Errors
     }
-  },
-
-  httpDirName = "opcua",
-
-  -- Size of buffer is allocated for one chunk.
-  -- Minimum size 8192.
-  bufSize = 16384,
-
-  securePolicies = {
-    -- Secure policy "None" provides no security at all.
-    -- if you need some security then remove this element from array
-    { -- #1
-      securityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#None", -- ua.Types.SecurityPolicy.None
-    },
-  },
-
-  userIdentityTokens = {
-    {
-      policyId = "anonymous",
-      tokenType = 0, -- ua.Types.UserTokenType.Anonymous
-      issuedTokenType = nil,
-      issuerEndpointUrl = nil,
-      securityPolicyUri = nil
-    },
-    {
-      policyId = "username",
-      tokenType = 1, -- ua.Types.UserTokenType.UserName
-      issuedTokenType = nil,
-      issuerEndpointUrl = nil,
-      securityPolicyUri = nil,
-    },
-    {
-      policyId = "x509",
-      tokenType = 2, -- ua.Types.UserTokenType.Certificate
-      issuedTokenType = nil,
-      issuerEndpointUrl = nil,
-      securityPolicyUri = nil
-    }
-  },
-
-  logging = logging
+  }
 }
 
-local uaServers = {
-  [1] = binaryServer
-  -- [2] = httpServer
-}
-
-return uaServers
+return binaryServer

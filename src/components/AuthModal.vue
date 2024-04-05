@@ -56,6 +56,7 @@ async function fillSecurePolicies(url: string, newRequest: boolean = false) {
       endpoint.SecurityPolicyId = policyName + modeName
       endpoint.EncryptionName = policyName
       endpoint.ModeName = modeName
+      endpoint.Transport = OPCUA.getTransportName(endpoint.TransportProfileUri)
     }
 
     endpoints.value = getEndpointsResp.Endpoints
@@ -257,7 +258,7 @@ function clearLocalStorages() {
                     :aria-controls="'flush-collapse-' + eidx"
                   >
                     <div>
-                      <h5>{{ endpoint.EncryptionName }} - {{ endpoint.ModeName }}</h5>
+                      <h5>{{ endpoint.EncryptionName }} - {{ endpoint.ModeName }} - {{ endpoint.Transport }}</h5>
                       <h6 style="font-size: x-small;">{{ endpoint.EndpointUrl }}</h6>
                     </div>
                   </button>

@@ -147,7 +147,7 @@ local binaryServer = {
     },
     binary = {
       dbgOn = false,  -- Debugging traces about binary protocol. Print encoded message hex data.
-      infOn = true,  -- Information traces about binary protocol
+      infOn = false,  -- Information traces about binary protocol
       errOn = true,  -- Errors in binary protocol
     },
     services = {

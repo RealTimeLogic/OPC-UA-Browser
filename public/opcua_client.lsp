@@ -58,8 +58,8 @@ local function opcUaClient(wsSock)
                ua.Tools.printTable("Client configuration", clientConfig, ua.trace.dbg)
                -- Cosocket mode will automatically be enabled since are we in cosocket context
                uaClient = ua.newClient(clientConfig)
-               tracep(false, 4, "Connecting to endpoint '".. endpointUrl .. "'")
-               local result = uaClient:connect(endpointUrl)
+               tracep(false, 4, "Connecting to endpoint '".. endpointUrl .. "' transportProfileUri: '" .. (request.ConnectEndpoint.TransportProfileUri or "") .. "'")
+               local result = uaClient:connect(endpointUrl, request.ConnectEndpoint.TransportProfileUri)
                if result then
                   uaClient = nil
                   trace("Connection failed: ", result)

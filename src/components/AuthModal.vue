@@ -88,6 +88,7 @@ async function connectEndpoint(): Promise<boolean> {
 
   const endpointParams = {
     EndpointUrl: endpoint.EndpointUrl,
+    TransportProfileUri: endpoint.TransportProfileUri,
     SecurityPolicyUri: endpoint.SecurityPolicyUri,
     SecurityMode: endpoint.SecurityMode,
     ServerCertificate: endpoint.ServerCertificate,

@@ -1,5 +1,5 @@
 // import { UAServer, UaHttpClient } from "opcua-client"
-import { UAServer } from "opcua-client"
+import { TransportProfile, UAServer } from "opcua-client"
 
 type Request = {
   reject(error: any): void
@@ -123,11 +123,12 @@ export class RtlProxyClient implements UAServer {
     return this.disconnectWebSocket()
   }
 
-  async hello(endpointUrl: string) {
+  async hello(endpointUrl: string, transportProfileUri?: string) {
 
     const request = {
       ConnectEndpoint: {
-        EndpointUrl: endpointUrl
+        EndpointUrl: endpointUrl,
+        TransportProfileUri: transportProfileUri
       }
     }
 

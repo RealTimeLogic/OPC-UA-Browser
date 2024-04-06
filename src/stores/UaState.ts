@@ -90,8 +90,8 @@ export const uaApplication = defineStore('uaApplication', () => {
       const srv = createServer(endpoint.EndpointUrl, uaApplication().opcuaWebSockURL())
       await srv.connect()
 
-      onMessage(LogMessageType.Info, 'Connecting to endpoint ' + endpoint.EndpointUrl)
-      await srv.hello(endpoint.EndpointUrl)
+      onMessage(LogMessageType.Info, 'Connecting to endpoint ' + endpoint.EndpointUrl + ' with profile ' + endpoint.TransportProfileUri)
+      await srv.hello(endpoint.EndpointUrl, endpoint.TransportProfileUri)
 
       onMessage(LogMessageType.Info, 'Opening secure channel')
       await srv.openSecureChannel(

@@ -258,8 +258,8 @@ function clearLocalStorages() {
                     :aria-controls="'flush-collapse-' + eidx"
                   >
                     <div>
-                      <h5>{{ endpoint.EncryptionName }} - {{ endpoint.ModeName }} - {{ endpoint.Transport }}</h5>
-                      <h6 style="font-size: x-small;">{{ endpoint.EndpointUrl }}</h6>
+                      <h5>{{ endpoint.Transport }} - {{ endpoint.ModeName }} - {{ endpoint.EncryptionName }}</h5>
+                      <h6>{{ endpoint.EndpointUrl }}</h6>
                     </div>
                   </button>
                 </h2>

@@ -106,7 +106,7 @@ local binaryServer = {
 
   -- Size of buffer is allocated for one chunk.
   -- Minimum size 8192.
-  bufSize = 16384,
+  bufSize = 65536,
 
   securePolicies = {
     { -- #1

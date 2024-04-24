@@ -61,7 +61,7 @@ local function addBoolean(services, parentNodeId)
   local newVariable =
   {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="boolean_variable", ns=0}, "boolean_variable", {Value={Boolean=true}}, nextId())
+      ua.newVariableParams(parentNodeId, "boolean_variable", {Value={Boolean=true}}, nextId())
     }
   }
 
@@ -74,7 +74,7 @@ local function addBooleanArray(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="boolean_array_variable", ns=0}, "BooleanArray", {Value={Boolean={true,false,true,false,true,false,true,false,true,false}}}, nextId())
+      ua.newVariableParams(parentNodeId, "BooleanArray", {Value={Boolean={true,false,true,false,true,false,true,false,true,false}}}, nextId())
     }
   }
 
@@ -88,7 +88,7 @@ local function addByte(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="byte_variable", ns=0}, "Byte", {Value={Byte=17}}, nextId())
+      ua.newVariableParams(parentNodeId, "Byte", {Value={Byte=17}}, nextId())
     }
   }
 
@@ -103,7 +103,7 @@ local function addByteArray(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="byte_array_variable", ns=0}, "ByteArray", {Value={Byte=data}}, nextId())
+      ua.newVariableParams(parentNodeId, "ByteArray", {Value={Byte=data}}, nextId())
     }
   }
 
@@ -117,7 +117,7 @@ local function addSByte(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="sbyte_variable", ns=0}, "SByte", {Value={SByte=-100}}, nextId())
+      ua.newVariableParams(parentNodeId, "SByte", {Value={SByte=-100}}, nextId())
     }
   }
 
@@ -131,7 +131,7 @@ local function addSByteArray(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="sbyte_array_variable", ns=0}, "SByteArray", {Value={SByte={-2,-1,0,1,2,3,4,5,6,7}}}, nextId())
+      ua.newVariableParams(parentNodeId, "SByteArray", {Value={SByte={-2,-1,0,1,2,3,4,5,6,7}}}, nextId())
     }
   }
 
@@ -145,7 +145,7 @@ local function addInt16(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="int16_variable", ns=0}, "Int16", {Value={Int16=30000}}, nextId())
+      ua.newVariableParams(parentNodeId, "Int16", {Value={Int16=30000}}, nextId())
     }
   }
 
@@ -158,7 +158,7 @@ local function addInt16Array(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="int16_array_variable", ns=0}, "Int16Array", {Value={Int16={-2000,-1000,0,100,200,300,400,5000,6000,7000}}}, nextId())
+      ua.newVariableParams(parentNodeId, "Int16Array", {Value={Int16={-2000,-1000,0,100,200,300,400,5000,6000,7000}}}, nextId())
     }
   }
 
@@ -173,8 +173,8 @@ local function addUInt16_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="uint16_variable", ns=0}, "UInt16", {Value={UInt16=30000}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="uint16_array_variable", ns=0}, "UInt16Array", {Value={UInt16={2000,1000,0,100,200,300,400,5000,6000,40000}}}, nextId())
+      ua.newVariableParams(parentNodeId, "UInt16", {Value={UInt16=30000}}, nextId()),
+      ua.newVariableParams(parentNodeId, "UInt16Array", {Value={UInt16={2000,1000,0,100,200,300,400,5000,6000,40000}}}, nextId())
     }
   }
 
@@ -188,10 +188,10 @@ local function addInt32_UInt32_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="uint32_variable", ns=0}, "UInt32", {Value={UInt32=30000}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="uint32_array_variable", ns=0}, "UInt32Array", {Value={UInt32={2000,1000,0,100,200,300,4000000,5000,6000,40000}}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="int32_variable", ns=0}, "Int32", {Value={Int32=30000}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="int32_array_variable", ns=0}, "Int32Array", {Value={Int32={-2000,1000,0,100,-200,300,-4000000,5000,6000,40000}}}, nextId())
+      ua.newVariableParams(parentNodeId, "UInt32", {Value={UInt32=30000}}, nextId()),
+      ua.newVariableParams(parentNodeId, "UInt32Array", {Value={UInt32={2000,1000,0,100,200,300,4000000,5000,6000,40000}}}, nextId()),
+      ua.newVariableParams(parentNodeId, "Int32", {Value={Int32=30000}}, nextId()),
+      ua.newVariableParams(parentNodeId, "Int32Array", {Value={Int32={-2000,1000,0,100,-200,300,-4000000,5000,6000,40000}}}, nextId())
     }
   }
 
@@ -206,10 +206,10 @@ local function addInt64_UInt64_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="uint64_variable", ns=0}, "UInt64", {Value={UInt64=3000000000}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="uint64_array_variable", ns=0}, "UInt64Array", {Value={UInt64={2000,1000,0,100,200,300,4000000000,5000,6000,40000}}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="int64_variable", ns=0}, "Int64", {Value={Int64=1000000000}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="int64_array_variable", ns=0}, "Int364Array", {Value={Int64={-2000,1000,0,100,-200,300,-10000000000,5000,6000,40000}}}, nextId())
+      ua.newVariableParams(parentNodeId, "UInt64", {Value={UInt64=3000000000}}, nextId()),
+      ua.newVariableParams(parentNodeId, "UInt64Array", {Value={UInt64={2000,1000,0,100,200,300,4000000000,5000,6000,40000}}}, nextId()),
+      ua.newVariableParams(parentNodeId, "Int64", {Value={Int64=1000000000}}, nextId()),
+      ua.newVariableParams(parentNodeId, "Int364Array", {Value={Int64={-2000,1000,0,100,-200,300,-10000000000,5000,6000,40000}}}, nextId())
     }
   }
 
@@ -223,10 +223,10 @@ local function addFloat_Double_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="float_variable", ns=0}, "Float", {Value={Float=1.1}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="float_array_variable", ns=0}, "FloatArray", {Value={Float={2.2,3.3}}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="double_variable", ns=0}, "Double", {Value={Double=-1.1}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="double_array_variable", ns=0}, "Double", {Value={Double={6000.222,40000.22}}}, nextId())
+      ua.newVariableParams(parentNodeId, "Float", {Value={Float=1.1}}, nextId()),
+      ua.newVariableParams(parentNodeId, "FloatArray", {Value={Float={2.2,3.3}}}, nextId()),
+      ua.newVariableParams(parentNodeId, "Double", {Value={Double=-1.1}}, nextId()),
+      ua.newVariableParams(parentNodeId, "Double", {Value={Double={6000.222,40000.22}}}, nextId())
     }
   }
 
@@ -242,8 +242,8 @@ local function addString_Scalar_And_Array(services, parentNodeId)
   local strArray = {"Element1", "Element2", "Element3", "Element4", "Element5", "Element6", "Element7", "Element8", "Element9", "Element10"}
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="string_variable", ns=0}, "String", {Value={String=strScalar}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="string_array_variable", ns=0}, "StringArray", {Value={String=strArray}}, nextId()),
+      ua.newVariableParams(parentNodeId, "String", {Value={String=strScalar}}, nextId()),
+      ua.newVariableParams(parentNodeId, "StringArray", {Value={String=strArray}}, nextId()),
     }
   }
 
@@ -275,8 +275,8 @@ local function addGuid_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="guid_variable", ns=0}, "Guid", {Value={Guid=guidScalar}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="guid_array_variable", ns=0}, "GuidArray", {Value={Guid=guidArray}}, nextId())
+      ua.newVariableParams(parentNodeId, "Guid", {Value={Guid=guidScalar}}, nextId()),
+      ua.newVariableParams(parentNodeId, "GuidArray", {Value={Guid=guidArray}}, nextId())
     }
   }
 
@@ -293,8 +293,8 @@ local function addDateTime_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="datetime_variable", ns=0}, "DateTime", {Value={DateTime=dateTimeScalar}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="datetime_array_variable", ns=0}, "DateTimeArray", {Value={DateTime=dateTimeArray}}, nextId())
+      ua.newVariableParams(parentNodeId, "DateTime", {Value={DateTime=dateTimeScalar}}, nextId()),
+      ua.newVariableParams(parentNodeId, "DateTimeArray", {Value={DateTime=dateTimeArray}}, nextId())
     }
   }
 
@@ -320,8 +320,8 @@ local function addByteString_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="bytestring_variable", ns=0}, "ByteString", {Value={ByteString=byteStringScalar}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="datetime_array_variable", ns=0}, "DateTimeArray", {Value={ByteString=byteStringArray}}, nextId())
+      ua.newVariableParams(parentNodeId, "ByteString", {Value={ByteString=byteStringScalar}}, nextId()),
+      ua.newVariableParams(parentNodeId, "DateTimeArray", {Value={ByteString=byteStringArray}}, nextId())
     }
   }
 
@@ -351,8 +351,8 @@ local function addXmlElement_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="xmlelement_variable", ns=0}, "XmlElement", {Value={XmlElement=xmlScalar}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="xmlelement_array_variable", ns=0}, "XmlElementArray", {Value={XmlElement=xmlArray}}, nextId()),
+      ua.newVariableParams(parentNodeId, "XmlElement", {Value={XmlElement=xmlScalar}}, nextId()),
+      ua.newVariableParams(parentNodeId, "XmlElementArray", {Value={XmlElement=xmlArray}}, nextId()),
     }
   }
 
@@ -379,8 +379,8 @@ local function addNodeId_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="nodeid_variable", ns=0}, "NodeId", {Value={NodeId=nodeIdScalar}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="nodeid_array_variable", ns=0}, "NodeIdArray", {Value={NodeId=nodeIdArray}}, nextId()),
+      ua.newVariableParams(parentNodeId, "NodeId", {Value={NodeId=nodeIdScalar}}, nextId()),
+      ua.newVariableParams(parentNodeId, "NodeIdArray", {Value={NodeId=nodeIdArray}}, nextId()),
     }
   }
 
@@ -409,8 +409,8 @@ local function addExpandedNodeId_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="expanded_nodeid_variable", ns=0}, "ExpandedNodeId", {Value={ExpandedNodeId=nodeIdScalar}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="expanded_nodeid_array_variable", ns=0}, "ExpandedNodeIdArray", {Value={ExpandedNodeId=nodeIdArray}}, nextId()),
+      ua.newVariableParams(parentNodeId, "ExpandedNodeId", {Value={ExpandedNodeId=nodeIdScalar}}, nextId()),
+      ua.newVariableParams(parentNodeId, "ExpandedNodeIdArray", {Value={ExpandedNodeId=nodeIdArray}}, nextId()),
     }
   }
 
@@ -438,8 +438,8 @@ local function addStatusCode_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new boolean variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="statuscode_variable", ns=0}, "StatusCode", {Value={StatusCode=statusCodeScalar}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="statuscode_array_variable", ns=0}, "StatusCodeArray", {Value={StatusCode=statusCodeArray}}, nextId()),
+      ua.newVariableParams(parentNodeId, "StatusCode", {Value={StatusCode=statusCodeScalar}}, nextId()),
+      ua.newVariableParams(parentNodeId, "StatusCodeArray", {Value={StatusCode=statusCodeArray}}, nextId()),
     }
   }
 
@@ -467,8 +467,8 @@ local function addQualifiedName_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new QualifiedName variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="qualifiedname_variable", ns=0}, "QualifiedName", {Value={QualifiedName=qualifiedNameScalar}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="qualifiedname_array_variable", ns=0}, "QualifiedNameArray", {Value={QualifiedName=qualifiedNameArray}}, nextId()),
+      ua.newVariableParams(parentNodeId, "QualifiedName", {Value={QualifiedName=qualifiedNameScalar}}, nextId()),
+      ua.newVariableParams(parentNodeId, "QualifiedNameArray", {Value={QualifiedName=qualifiedNameArray}}, nextId()),
     }
   }
 
@@ -496,8 +496,8 @@ local function addLocalizedText_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new QualifiedName variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="localizedtext_variable", ns=0}, "LocalizedText", {Value={LocalizedText=localizedTextScalar}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="localizedtext_array_variable", ns=0}, "LocalizedTextArray", {Value={LocalizedText=localizedTextArray}}, nextId()),
+      ua.newVariableParams(parentNodeId, "LocalizedText", {Value={LocalizedText=localizedTextScalar}}, nextId()),
+      ua.newVariableParams(parentNodeId, "LocalizedTextArray", {Value={LocalizedText=localizedTextArray}}, nextId()),
     }
   }
 
@@ -530,8 +530,8 @@ local function addExtensionObject_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new ExtensionObject variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="extension_object_variable", ns=0}, "ExtensionObject", {Value={ExtensionObject=extensionObjectScalar}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="extension_object_array_variable", ns=0}, "ExtensionObjectArray", {Value={ExtensionObject=extensionObjectArray}}, nextId())
+      ua.newVariableParams(parentNodeId, "ExtensionObject", {Value={ExtensionObject=extensionObjectScalar}}, nextId()),
+      ua.newVariableParams(parentNodeId, "ExtensionObjectArray", {Value={ExtensionObject=extensionObjectArray}}, nextId())
     }
   }
 
@@ -636,8 +636,8 @@ local function addDataValue_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new DataValue variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="datavalue_object_variable", ns=0}, "DataValue", {Value={DataValue=dataValueScalar}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="datavalue_object_array_variable", ns=0}, "DataValueArray", {Value={DataValue=dataValueArray}}, nextId()),
+      ua.newVariableParams(parentNodeId, "DataValue", {Value={DataValue=dataValueScalar}}, nextId()),
+      ua.newVariableParams(parentNodeId, "DataValueArray", {Value={DataValue=dataValueArray}}, nextId()),
     }
   }
 
@@ -679,8 +679,8 @@ local function addDiagnosticInfo_Scalar_And_Array(services, parentNodeId)
   -- Array with node id attributes of a new DataValue variable
   local newVariable = {
     NodesToAdd = {
-      ua.newVariableParams(parentNodeId, {Name="disgnosticinfo_object_variable", ns=0}, "DiagnosticInfo", {Value={DiagnosticInfo=diagnosticInfoScalar}}, nextId()),
-      ua.newVariableParams(parentNodeId, {Name="diagnosticinfo_object_array_variable", ns=0}, "DiagnosticInfoArray", {Value={DiagnosticInfo=diagnosticInfoArray}}, nextId()),
+      ua.newVariableParams(parentNodeId, "DiagnosticInfo", {Value={DiagnosticInfo=diagnosticInfoScalar}}, nextId()),
+      ua.newVariableParams(parentNodeId, "DiagnosticInfoArray", {Value={DiagnosticInfo=diagnosticInfoArray}}, nextId()),
     }
   }
 
@@ -690,7 +690,7 @@ end
 local function addVaraibleFolder(services, parentNodeId)
   traceI("Adding folder 'Variables' under which variable nodes will be placed.")
   local folderId = nextId()
-  local folderParams = ua.newFolderParams(parentNodeId, {Name="Variables", ns=0}, "Variables", folderId)
+  local folderParams = ua.newFolderParams(parentNodeId, "Variables", folderId)
   local request = {
     NodesToAdd = {folderParams}
   }

@@ -177,7 +177,9 @@ local function authenticate(tokenType, token, user)
   return accessPermitted
 end
 
-local baseUri = app.dir:baseuri().."opcua_client.lsp"
+-- app.dir can be absent if option 'LSP app' is not set in the XEdge32 application configuration
+-- in this case baseUri is nil to disable HTTP and HTTPS endpoints
+local baseUri = app and app.dir and app.dir:baseuri().."opcua_client.lsp"
 
 -- if need to disable OPCUA server then set 'uaServer' to false
 -- in mako.conf file
@@ -188,14 +190,24 @@ if type(serverConfig) == 'table' then
 
   -- Create HTTP and HTTPS endpoints since we don't know hostname before server is started
   -- if endpoint URL has only scheme then add hostname, port and http directory
-  for _, endpoint in ipairs(serverConfig.endpoints) do
+  for i, endpoint in ipairs(serverConfig.endpoints) do
     local endpointUrl = endpoint.endpointUrl
     if endpointUrl == "http://" or endpointUrl == "opc.http://" then
       endpointUrl = string.format("%s%s:%d%s", endpointUrl, hostname, mako and mako.port or 80, baseUri)
     elseif endpointUrl == "https://" or endpointUrl == "opc.https://" then
-      endpointUrl = string.format("%s%s:%d%s", endpointUrl, hostname, mako and mako.sslport or 443, baseUri)
+      if baseUri ~= nil then
+        endpointUrl = string.format("%s%s:%d%s", endpointUrl, hostname, mako and mako.sslport or 443, baseUri)
+      else
+        serverConfig.endpoints[i] = nil
+        goto continue
+      end
     elseif endpointUrl == "opc.tcp://" then
-      endpointUrl = string.format("%s%s:%d", endpointUrl, hostname, endpoint.listenPort or "4841")
+      if baseUri ~= nil then
+        endpointUrl = string.format("%s%s:%d", endpointUrl, hostname, endpoint.listenPort or "4841")
+      else
+        serverConfig.endpoints[i] = nil
+        goto continue
+      end
     else
       endpointUrl = nil
     end
@@ -207,6 +219,8 @@ if type(serverConfig) == 'table' then
     if endpointUrl then
       endpoint.endpointUrl = endpointUrl
     end
+
+    ::continue::
   end
 
   -- if server certificate not specified then generate one

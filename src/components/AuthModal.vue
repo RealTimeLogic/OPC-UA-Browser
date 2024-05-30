@@ -206,6 +206,11 @@ function clearLocalStorages() {
 }
 
 
+function truncate(str: string) {
+  const n = 40
+  return str.length > n ? str.substr(0, n - 10) + ' ... ' + str.substr(str.length - 10) : str
+}
+
 </script>
 
 <template>
@@ -250,7 +255,7 @@ function clearLocalStorages() {
               >
                 <h2 class="accordion-header">
                   <button
-                    class="accordion-button fill-endpoints-button"
+                    class="accordion-button fill-endpoints-button text-wrap"
                     type="button"
                     data-bs-toggle="collapse"
                     :class="{collapsed : selectedEndpointIdx !== eidx}"
@@ -260,7 +265,7 @@ function clearLocalStorages() {
                   >
                     <div>
                       <h5>{{ endpoint.Transport }} - {{ endpoint.ModeName }} - {{ endpoint.EncryptionName }}</h5>
-                      <h6>{{ endpoint.EndpointUrl }}</h6>
+                      <h6 :title="endpoint.EndpointUrl">{{ truncate(endpoint.EndpointUrl) }}</h6>
                     </div>
                   </button>
                 </h2>

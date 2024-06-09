@@ -60,7 +60,6 @@ function opcuaWebSockURL(): string {
 export const uaApplication = defineStore('uaApplication', () => {
   const server = ref<OPCUA.UAServer | undefined>(undefined)
 
-  const webSockURL = ref(opcuaWebSockURL())
   const needAuth = ref(false)
   const root = ref<NodeType>({
     nodeid: new OPCUA.NodeId('i=84'),
@@ -91,7 +90,7 @@ export const uaApplication = defineStore('uaApplication', () => {
       await srv.connect()
 
       onMessage(LogMessageType.Info, 'Connecting to endpoint ' + endpoint.EndpointUrl + ' with profile ' + endpoint.TransportProfileUri)
-      await srv.hello(endpoint.EndpointUrl, endpoint.TransportProfileUri)
+      await srv.hello(endpoint.EndpointUrl)
 
       onMessage(LogMessageType.Info, 'Opening secure channel')
       await srv.openSecureChannel(

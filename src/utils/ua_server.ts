@@ -1,5 +1,5 @@
 // import { UAServer, UaHttpClient } from "opcua-client"
-import { TransportProfile, UAServer } from "opcua-client"
+import { UAServer } from "opcua-client"
 
 type Request = {
   reject(error: any): void

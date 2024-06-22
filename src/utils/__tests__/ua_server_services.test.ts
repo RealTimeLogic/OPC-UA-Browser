@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import * as OPCUA from 'opcua-client'
-import { RtlProxyClient } from '../ua_server'
+import { RtlProxyClient } from '../ua_client_proxy'
 
 const WebSockURL = 'ws://localhost:9357/opcua_client.lsp'
-const EndpointURL = 'opc.tcp://vm-ubuntu:4841/opcua/'
+const EndpointURL = 'opc.tcp://vm-ubuntu:4841'
 
 describe('Services', async () => {
-  let server: OPCUA.UAServer
+  let server: RtlProxyClient
 
   beforeEach(async () => {
     server = new RtlProxyClient(WebSockURL)
@@ -21,21 +21,21 @@ describe('Services', async () => {
     const session: any = await server.createSession('test_js_session', 3600000)
     let basic128Rsa15Edpoint: any
     for (const endpoint of session.ServerEndpoints) {
-      if (endpoint.SecurityPolicyUri == OPCUA.SecurePolicyUri.Basic128Rsa15) {
+      if (endpoint.SecurityPolicyUri !== OPCUA.SecurePolicyUri.None) {
         basic128Rsa15Edpoint = endpoint
         break
       }
     }
 
-    let anonymousPolicyId: string = ''
+    let anonymousPolicy: any
     for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
       if (tokenPolicy.TokenType == OPCUA.UserTokenType.Anonymous) {
-        anonymousPolicyId = tokenPolicy.PolicyId
+        anonymousPolicy = tokenPolicy.PolicyId
       }
     }
 
-    expect(anonymousPolicyId).not.toEqual('')
-    const activateResult = await server.activateSession(anonymousPolicyId)
+    expect(anonymousPolicy).not.toEqual(null)
+    const activateResult = await server.activateSession(anonymousPolicy)
     expect(activateResult).to.toBeDefined()
   })
 

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { createServer} from '../utils/ua_server.js'
+import { createUaClient } from '../utils/ua_client_proxy'
 import * as OPCUA from "opcua-client"
 
 export type AttributeValueType = {
@@ -27,7 +27,7 @@ export type LogEntryType = {
 }
 
 export type UaStateType = {
-  server: OPCUA.UAServer | undefined
+  server: OPCUA.UaClient | undefined
   webSockURL: string
   root: NodeType
   needAuth: boolean
@@ -58,7 +58,7 @@ function opcuaWebSockURL(): string {
 }
 
 export const uaApplication = defineStore('uaApplication', () => {
-  const server = ref<OPCUA.UAServer | undefined>(undefined)
+  const server = ref<OPCUA.UaClient | undefined>(undefined)
 
   const needAuth = ref(false)
   const root = ref<NodeType>({
@@ -86,11 +86,10 @@ export const uaApplication = defineStore('uaApplication', () => {
 
   async function connect(endpoint: any) {
     try {
-      const srv = createServer(endpoint.EndpointUrl, uaApplication().opcuaWebSockURL())
-      await srv.connect()
+      const srv = createUaClient(endpoint.EndpointUrl, uaApplication().opcuaWebSockURL())
 
       onMessage(LogMessageType.Info, 'Connecting to endpoint ' + endpoint.EndpointUrl + ' with profile ' + endpoint.TransportProfileUri)
-      await srv.hello(endpoint.EndpointUrl)
+      await srv.hello(endpoint.EndpointUrl, endpoint.TransportProfileUri)
 
       onMessage(LogMessageType.Info, 'Opening secure channel')
       await srv.openSecureChannel(
@@ -105,7 +104,7 @@ export const uaApplication = defineStore('uaApplication', () => {
 
       onMessage(LogMessageType.Info, 'Logging to OPCUA server:' + endpoint.Token.Identity + ' with policy ' + endpoint.Token.TokenType.PolicyId)
       await srv.activateSession(
-        endpoint.Token.TokenType.PolicyId,
+        endpoint.Token.TokenType,
         endpoint.Token.Identity,
         endpoint.Token.Secret
       )
@@ -157,7 +156,7 @@ export const uaApplication = defineStore('uaApplication', () => {
       onMessage(LogMessageType.Info, 'Reading attributes ' + nodeId)
       const resp: any = await server.value.read(nodeId)
       const attributes = resp.Results.filter((r: any, index: number) => {
-        if (r.StatusCode == 0 || !("StatusCode" in r)) {
+        if (r.StatusCode == null || r.StatusCode == 0 || !("StatusCode" in r)) {
           r.AttributeId = index
           r.Name = OPCUA.getAttributeName(index)
           return true

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, Ref, computed } from 'vue'
 import * as OPCUA from 'opcua-client'
-import { createServer }  from "../utils/ua_server"
+import { createUaClient }  from "../utils/ua_client_proxy"
 import { Modal } from 'bootstrap';
 
 import { uaApplication, LogMessageType} from '../stores/UaState'
@@ -28,16 +28,16 @@ let certificateFile: Ref<File | undefined> = ref(undefined)
 const modal: Ref<HTMLDivElement> | Ref<null> = ref(null)
 const connectButton: Ref<HTMLButtonElement> | Ref<null> = ref(null)
 
-async function fillSecurePolicies(url: string, newRequest: boolean = false) {
+async function fillSecurePolicies(endpointUrl: string, newRequest: boolean = false) {
   if (newRequest) {
     clearLocalStorages();
   }
-  window.localStorage.setItem('localEndpointUrl', url);
+  window.localStorage.setItem('localEndpointUrl', endpointUrl);
   try {
     endpoints.value = []
-    let server = createServer(url, uaApplication().opcuaWebSockURL())
-    await server.connect()
-    await server.hello(url)
+    let server = createUaClient(endpointUrl, uaApplication().opcuaWebSockURL())
+
+    await server.hello(endpointUrl)
     await server.openSecureChannel(10000, OPCUA.SecurePolicyUri.None, OPCUA.MessageSecurityMode.None)
 
     const getEndpointsResp: any = await server.getEndpoints()
@@ -45,10 +45,8 @@ async function fillSecurePolicies(url: string, newRequest: boolean = false) {
     try {
       await server.closeSecureChannel()
     } catch (err) {
-      // ignore
+      uaApplication().onMessage(LogMessageType.Error, err)
     }
-
-    await server.disconnect()
 
     for (let endpoint of getEndpointsResp.Endpoints) {
       const policyName = OPCUA.getPolicyName(endpoint.SecurityPolicyUri)

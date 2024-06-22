@@ -1,5 +1,4 @@
-// import { UAServer, UaHttpClient } from "opcua-client"
-import { UAServer } from "opcua-client"
+import { UaClient, TransportProfile } from "opcua-client"
 
 type Request = {
   reject(error: any): void
@@ -8,11 +7,11 @@ type Request = {
   timeout: any
 }
 
-export class RtlProxyClient implements UAServer {
+export class RtlProxyClient implements UaClient {
   private Requests: Map<number, Request> = new Map()
   private RequestCounter: number = 0
-  private WebSock?: WebSocket
-  readonly SiteURL: string
+  private WebSock: WebSocket | null = null
+  private readonly SiteURL: string
   private readonly disconnectCallback?: any
 
   constructor(siteURL: string, disconnectCallback?: any) {
@@ -25,7 +24,7 @@ export class RtlProxyClient implements UAServer {
       const val = request[1]
       val.reject(e)
     }
-    this.WebSock = undefined
+    this.WebSock = null
     this.Requests = new Map()
     if (this.disconnectCallback != null)
       return this.disconnectCallback(e)
@@ -77,7 +76,7 @@ export class RtlProxyClient implements UAServer {
     return new Promise((resolve, reject) => {
       if (this.WebSock != undefined) {
         this.WebSock.close()
-        this.WebSock = undefined
+        this.WebSock = null
         resolve(this)
       } else {
         reject(new Error('already disconnected'))
@@ -92,7 +91,7 @@ export class RtlProxyClient implements UAServer {
 
   private async sendRequest(request: any) {
     return new Promise((resolve, reject) => {
-      if (this.WebSock == undefined) {
+      if (this.WebSock == null) {
         reject(new Error('No connection to web socket server.'))
         return
       }
@@ -123,7 +122,25 @@ export class RtlProxyClient implements UAServer {
     return this.disconnectWebSocket()
   }
 
-  async hello(endpointUrl: string, transportProfileUri?: string) {
+  public async hello(endpointUrl: string, transportProfileUri: string | null = null) {
+    if (this.WebSock == null)
+      await this.connectWebSocket()
+
+    if (transportProfileUri == null) {
+      if (endpointUrl.startsWith("opc.tcp://")) {
+        // opc.tcp:// is only binary
+        transportProfileUri = TransportProfile.TcpBinary
+      }
+      else if (endpointUrl.includes("https://") || endpointUrl.includes("http://")) {
+        // Json encoding over HTTP is supported only by RealTimelogic
+        // Use only binary ro be able to connect to any OPCUA server
+        // After requesting all Endpoints user could select Realtime logic OPCUA server with JSON ecoding
+        transportProfileUri = TransportProfile.HttpsBinary
+      }
+      else {
+        throw new Error('Unknown transport profile: ' + transportProfileUri)
+      }
+    }
 
     const request = {
       ConnectEndpoint: {
@@ -135,7 +152,7 @@ export class RtlProxyClient implements UAServer {
     return this.sendRequest(request)
   }
 
-  async openSecureChannel(
+  public async openSecureChannel(
     timeoutMs: number,
     securityPolicyUri: string,
     securityMode: number,
@@ -170,10 +187,11 @@ export class RtlProxyClient implements UAServer {
     return this.sendRequest(request)
   }
 
-  async activateSession(policyId: any, identity?: string, secret?: string) {
+  async activateSession(tokenPolicy: any, identity?: string, secret?: string) {
     const request = {
       ActivateSession: {
-        PolicyId: policyId,
+        TokenType: tokenPolicy.TokenType,
+        PolicyId: tokenPolicy.PolicyId,
         Secret: secret,
         Identity: identity
       }
@@ -230,18 +248,19 @@ export class RtlProxyClient implements UAServer {
   }
 }
 
-export function createServer(endpointUrl: string, wsUrl: string): UAServer {
-  return new RtlProxyClient(wsUrl)
+import { UaHttpClient } from "opcua-client"
 
-  // if (endpointUrl.startsWith("opc.http://"))
-  //   endpointUrl = endpointUrl.replace("opc.http", "http")
+export function createUaClient(endpointUrl: string, wsUrl: string): UaClient {
+  const endpoint = new URL(endpointUrl.replace("opc.http://", "http://").replace("opc.https://", "https://"))
+  let srv: UaClient
+  console.log(`window.location.origin: ${window.location.origin} endpoint.origin: ${endpoint.origin} endpointUrl: ${endpointUrl} wsUrl: ${wsUrl} endpoint: $`)
+  if (endpointUrl.startsWith("opc.tcp://") || window.location.origin !== endpoint.origin) {
+    console.log('Using RtlProxyClient for ' + wsUrl)
+    srv = new RtlProxyClient(wsUrl)
+  } else {
+    console.log('Using direct HTTP connection')
+    srv = new UaHttpClient()
+  }
 
-  // const endpoint = new URL(endpointUrl)
-  // let srv: UAServer
-  // if (endpointUrl.startsWith("opc.tcp://") || window.location.origin !== endpoint.origin)
-  //   srv = new RtlProxyClient(wsUrl)
-  // else
-  //   srv = new UaHttpClient(endpointUrl)
-
-  // return srv
+  return srv
 }

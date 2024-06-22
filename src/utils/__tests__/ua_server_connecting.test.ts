@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import * as OPCUA from 'opcua-client'
-import { RtlProxyClient as UAServer } from '../ua_server'
+import { RtlProxyClient as UaServer } from '../ua_client_proxy'
 
 
 const WebSockURL = 'ws://localhost:9357/opcua_client.lsp'
-const EndpointURL = 'opc.tcp://vm-ubuntu:4841/opcua/'
+const EndpointURL = 'opc.tcp://vm-ubuntu:4841'
 
 describe('Websocket connecting', async () => {
   it('Connects to websocket', async () => {
-    const server = new UAServer(WebSockURL)
+    const server = new UaServer(WebSockURL)
     await server.connect()
     const connectResult = await server.hello(EndpointURL)
     expect(connectResult).to.equal(undefined)
@@ -19,7 +19,7 @@ describe('Websocket connecting', async () => {
   })
 
   it('second connect not possible', async () => {
-    const server = new UAServer(WebSockURL)
+    const server = new UaServer(WebSockURL)
     const connectResult = await server.connect()
     expect(connectResult).to.equal(server)
 
@@ -30,7 +30,7 @@ describe('Websocket connecting', async () => {
   })
 
   it('second disconnect not possible', async () => {
-    const server = new UAServer(WebSockURL)
+    const server = new UaServer(WebSockURL)
     await server.connect()
     await server.disconnect()
     await expect(server.disconnect()).rejects.toThrowError(
@@ -44,7 +44,7 @@ describe('Websocket connecting', async () => {
       error = e
     }
 
-    const server = new UAServer(WebSockURL, onDisconnect)
+    const server = new UaServer(WebSockURL, onDisconnect)
 
     const connectResult = await server.connect()
     expect(connectResult).to.equal(server)
@@ -56,10 +56,10 @@ describe('Websocket connecting', async () => {
 })
 
 describe('Connect to OPCUA endpoint', async () => {
-  let server: UAServer
+  let server: UaServer
 
   beforeEach(async () => {
-    server = new UAServer(WebSockURL)
+    server = new UaServer(WebSockURL)
     await server.connect()
   })
 
@@ -81,7 +81,7 @@ describe('Connect to OPCUA endpoint', async () => {
 describe('OpenSecureChannel SecurePolicy None', async () => {
 
   it('OpenSecure channel without connect', async () => {
-    const server = new UAServer(WebSockURL)
+    const server = new UaServer(WebSockURL)
     await server.connect()
     const channel = server.openSecureChannel(
       3600000,
@@ -95,7 +95,7 @@ describe('OpenSecureChannel SecurePolicy None', async () => {
   })
 
   it('Open/Close secure channel', async () => {
-    const server = new UAServer(WebSockURL)
+    const server = new UaServer(WebSockURL)
     await server.connect()
     await server.hello(EndpointURL)
     const channel = await server.openSecureChannel(
@@ -115,7 +115,7 @@ describe('OpenSecureChannel SecurePolicy None', async () => {
 
 describe('GetEndpoints', async () => {
   it('Works', async () => {
-    const server = new UAServer(WebSockURL)
+    const server = new UaServer(WebSockURL)
     await server.connect()
     await server.hello(EndpointURL)
     await server.openSecureChannel(
@@ -132,7 +132,7 @@ describe('GetEndpoints', async () => {
   })
 
   it('Open Secure Channel all modes', async () => {
-    const server = new UAServer(WebSockURL)
+    const server = new UaServer(WebSockURL)
     await server.connect()
     await server.hello(EndpointURL)
     await server.openSecureChannel(
@@ -151,7 +151,7 @@ describe('GetEndpoints', async () => {
       it(
         'Can connect to: ' + endpoint.SecurityPolicyUri + ' mode ' + endpoint.SecurityMode,
         async () => {
-          const server = new UAServer(WebSockURL)
+          const server = new UaServer(WebSockURL)
           await server.connect()
           await server.hello(EndpointURL)
 
@@ -172,9 +172,9 @@ describe('GetEndpoints', async () => {
 })
 
 describe('Session', async () => {
-  let server: UAServer
+  let server: UaServer
   beforeEach(async () => {
-    server = new UAServer(WebSockURL)
+    server = new UaServer(WebSockURL)
     await server.connect()
     await server.hello(EndpointURL)
     await server.openSecureChannel(
@@ -199,13 +199,13 @@ describe('Session', async () => {
 })
 
 describe('Authentication', async () => {
-  let server: UAServer
+  let server: UaServer
   let basic128Rsa15Edpoint: any
 
-  beforeEach(async () => {
-    server = new UAServer(WebSockURL)
+beforeEach(async () => {
+    server = new UaServer(WebSockURL)
     await server.connect()
-    await server.hello(EndpointURL)
+    await server.hello(EndpointURL, OPCUA.TransportProfile.TcpBinary)
     await server.openSecureChannel(
       3600000,
       OPCUA.SecurePolicyUri.None,
@@ -213,7 +213,7 @@ describe('Authentication', async () => {
     )
     const session: any = await server.createSession('test_js_session', 3600000)
     for (const endpoint of session.ServerEndpoints) {
-      if (endpoint.SecurityPolicyUri == OPCUA.SecurePolicyUri.Basic128Rsa15) {
+      if (endpoint.SecurityPolicyUri !== OPCUA.SecurePolicyUri.None) {
         basic128Rsa15Edpoint = endpoint
         return
       }
@@ -227,44 +227,44 @@ describe('Authentication', async () => {
   })
 
   it('Anonymous', async () => {
-    let anonymousPolicyId: string = ''
+    let anonymousPolicy: any = null
     for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
       if (tokenPolicy.TokenType == OPCUA.UserTokenType.Anonymous) {
-        anonymousPolicyId = tokenPolicy.PolicyId
+        anonymousPolicy = tokenPolicy
       }
     }
 
-    expect(anonymousPolicyId).not.toEqual('')
-    const session = await server.activateSession(anonymousPolicyId)
+    expect(anonymousPolicy).not.toEqual(null)
+    const session = await server.activateSession(anonymousPolicy)
     expect(session).to.toBeDefined()
   })
 
   it('Username', async () => {
-    let usernamePolicyId: string = ''
+    let usernamePolicy: any
     for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
       if (tokenPolicy.TokenType == OPCUA.UserTokenType.UserName) {
-        usernamePolicyId = tokenPolicy.PolicyId
+        usernamePolicy = tokenPolicy
         break
       }
     }
 
-    expect(usernamePolicyId).not.toEqual('')
-    const session = await server.activateSession(usernamePolicyId, 'admin', '12345')
+    expect(usernamePolicy).not.toEqual(undefined)
+    const session = await server.activateSession(usernamePolicy, 'admin', '12345')
     expect(session).to.toBeDefined()
   })
 
   it('Username Invalid', async () => {
-    let usernamePolicyId: string = ''
+    let usernamePolicy: any = null
     for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
       if (tokenPolicy.TokenType == OPCUA.UserTokenType.UserName) {
-        usernamePolicyId = tokenPolicy.PolicyId
+        usernamePolicy = tokenPolicy
         break
       }
     }
 
-    expect(usernamePolicyId).not.toEqual('')
+    expect(usernamePolicy).not.toEqual(null)
     try {
-      await server.activateSession(usernamePolicyId, 'admin', 'hahaha')
+      await server.activateSession(usernamePolicy, 'admin', 'hahaha')
       expect(true).to.toEqual(false)
     } catch (e) {
       expect(e).to.toEqual(Error('2149515264'))
@@ -272,17 +272,17 @@ describe('Authentication', async () => {
   })
 
   it('Username password null', async () => {
-    let usernamePolicyId: string = ''
+    let usernamePolicy: any = null
     for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
       if (tokenPolicy.TokenType == OPCUA.UserTokenType.UserName) {
-        usernamePolicyId = tokenPolicy.PolicyId
+        usernamePolicy = tokenPolicy
         break
       }
     }
 
-    expect(usernamePolicyId).not.toEqual('')
+    expect(usernamePolicy).not.toEqual(null)
     try {
-      await server.activateSession(usernamePolicyId, 'admin')
+      await server.activateSession(usernamePolicy, 'admin')
       expect(true).to.toEqual(false)
     } catch (e) {
       expect(e).to.toEqual(Error('2149580800'))
@@ -290,15 +290,15 @@ describe('Authentication', async () => {
   })
 
   it('Certificate', async () => {
-    let certificatePolicyId: string = ''
+    let certificatePolicy: any = null
     for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
       if (tokenPolicy.TokenType == OPCUA.UserTokenType.Certificate) {
-        certificatePolicyId = tokenPolicy.PolicyId
+        certificatePolicy = tokenPolicy
         break
       }
     }
 
-    expect(certificatePolicyId).not.toEqual('')
+    expect(certificatePolicy).not.toEqual('')
 
     // Certificate and private key of user 'admin'
     const userCert = `
@@ -326,7 +326,7 @@ describe('Authentication', async () => {
         5u7yFRlWWqWhHShKfrPsd8WXzfd+oGLMp/zi+db51A==
         -----END CERTIFICATE-----
       `
-    const result = await server.activateSession(certificatePolicyId, userCert)
+    const result = await server.activateSession(certificatePolicy, userCert)
     expect(result).to.toBeDefined()
   })
 })

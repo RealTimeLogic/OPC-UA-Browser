@@ -1,10 +1,11 @@
 tracep(false, 5, "Initializing OPCUA")
-local ua = require("opcua.api")
-local init = require("opcua.init")
 
+local ua = require("opcua.api")
+ua.assertVersion("0.8.0")
+
+local init = require("opcua.init")
 local checkConfig = require("opcua.config")
-local sock = require("socket")
-local gettime=os.time
+local socket = require("socket")
 
 local function getHostName()
   local hostname
@@ -12,7 +13,7 @@ local function getHostName()
     local f = _G.io.popen("hostname")
     hostname = f:read("*a")
   else
-    local sock = sock.connect("google.com", 80)
+    local sock = socket.connect("google.com", 80)
     local _,_,ips = string.find(sock:sockname(), "(%d+.%d+.%d+.%d+)")
     hostname = ips
   end
@@ -101,14 +102,16 @@ if suc then
   if makoConf.uaClient then
     clientConfig = makoConf.uaClient
     clientConfig.io = _G.io
-    clientConfig.certificate, clientConfig.key = genOPCUACert(cio, init.genClientCertificate, hostname, clientConfig.applicationUri, "opcua_client")
+    clientConfig.certificate, clientConfig.key =
+      genOPCUACert(cio, init.genClientCertificate, hostname, clientConfig.applicationUri, "opcua_client")
   end
 
   -- To disable OPCUA server set 'uaServer' to false in mako.conf file
   serverConfig = makoConf.uaServer
   if type(serverConfig) == 'table' then
     serverConfig.io = _G.io
-    serverConfig.certificate, serverConfig.key = genOPCUACert(cio, init.genServerCertificate, hostname, serverConfig.applicationUri, "opcua_server"..tostring(i))
+    serverConfig.certificate, serverConfig.key =
+      genOPCUACert(cio, init.genServerCertificate, hostname, serverConfig.applicationUri, "opcua_server")
   end
 end
 
@@ -225,7 +228,8 @@ if type(serverConfig) == 'table' then
 
   -- if server certificate not specified then generate one
   if not serverConfig.certificate then
-    local certPath, keyPath = genOPCUACert(serverConfig.io, init.genServerCertificate, hostname, serverConfig.applicationUri, "opcua_server")
+    local certPath, keyPath =
+      genOPCUACert(serverConfig.io, init.genServerCertificate, hostname, serverConfig.applicationUri, "opcua_server")
     serverConfig.certificate = certPath
     serverConfig.key = keyPath
   end

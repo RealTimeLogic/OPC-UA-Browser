@@ -22,7 +22,7 @@
     "test:e2e:dev": "start-server-and-test 'vite dev --port 4173' http://localhost:4173 'cypress open --e2e'",
     "cypress:run": "cypress run --config video=false --component",
     "cypress:run:dev": "start-server-and-test 'vite dev --port 4173' http://localhost:4173 'cross-env CYPRESS_REMOTE_DEBUGGING_PORT=9222 cypress open --component'",
-    "preinstall": "npm install opcua-client-1.1.0-alpha.tgz"
+    "preinstall": "npm install ./opcua-client-1.1.0-alpha.tgz"
   },
   "dependencies": {
     "bootstrap": "^5.2.3",

@@ -250,28 +250,11 @@ local function addString_Scalar_And_Array(services, parentNodeId)
   addNodes(services, newVariable)
 end
 
-local num = 0
-local function genGuid()
-  num = num + 1
-  return {
-    Data1=num,
-    Data2=num,
-    Data3=num,
-    Data4=num,
-    Data5=num,
-    Data6=num,
-    Data7=num,
-    Data8=num,
-    Data9=num,
-    Data10=num,
-    Data11=num
-  }
-end
 local function addGuid_Scalar_And_Array(services, parentNodeId)
   traceI("Adding Guid scalar and array")
 
-  local guidScalar = genGuid()
-  local guidArray = {genGuid(),genGuid(),genGuid()}
+  local guidScalar = ua.createGuid()
+  local guidArray = {ua.createGuid(),ua.createGuid(),ua.createGuid()}
   -- Array with node id attributes of a new variable
   local newVariable = {
     NodesToAdd = {

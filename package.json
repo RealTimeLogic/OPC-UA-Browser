@@ -1,6 +1,6 @@
 {
   "name": "opcua-browser",
-  "version": "1.0.0",
+  "version": "0.10.0",
   "private": true,
   "engines": {
     "npm": ">=8.0.0",
@@ -22,7 +22,7 @@
     "test:e2e:dev": "start-server-and-test 'vite dev --port 4173' http://localhost:4173 'cypress open --e2e'",
     "cypress:run": "cypress run --config video=false --component",
     "cypress:run:dev": "start-server-and-test 'vite dev --port 4173' http://localhost:4173 'cross-env CYPRESS_REMOTE_DEBUGGING_PORT=9222 cypress open --component'",
-    "preinstall": "npm install ./opcua-client-1.1.0-alpha.tgz"
+    "preinstall": "npm install opcua-client-0.10.0.tgz"
   },
   "dependencies": {
     "bootstrap": "^5.2.3",
@@ -49,7 +49,7 @@
     "eslint-plugin-vue": "^9.9.0",
     "jsdom": "^21.1.0",
     "npm-run-all": "^4.1.5",
-    "opcua-client": "file:opcua-client-1.1.0-alpha.tgz",
+    "opcua-client": "file:opcua-client-0.10.0.tgz",
     "prettier": "^2.8.4",
     "sass": "^1.71.1",
     "start-server-and-test": "^2.0.0",

@@ -57,15 +57,15 @@ Yf5Xko5oK8oJ36koWVw=
 
 return {
   io = _ENV.app.io,
+  certificate = certificate,
+  key =         key,
+
   bufSize = 65536,
-  applicationName="RealTimeLogic OPCUA Client",
+  applicationName="RealTimeLogic OPCUA browser",
 
   -- Application URI should be equal to
   -- URI subject alternative name extention in the certificate
-  applicationUri="urn:RealTimeLogic:opcua:client",
-
-  certificate = certificate,
-  key =         key,
+  applicationUri="urn:RealTimeLogic:opcua:browser",
 
   securePolicies ={
     { -- #1
@@ -87,13 +87,13 @@ return {
 
   logging = {
     socket = {
-      dbgOn = false,
+      dbgOn = true,
       infOn = true,
       errOn = true
     },
     binary = {
-      dbgOn = false,
-      infOn = false,
+      dbgOn = true,
+      infOn = true,
       errOn = true
     },
     services = {

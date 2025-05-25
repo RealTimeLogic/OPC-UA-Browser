@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { watch } from 'vue';
+import { watch, onUnmounted } from 'vue';
 import { LogMessageType, uaApplication } from '../stores/UaState'
 
 const messages = uaApplication().messages
 
-watch(messages, () => {
+const stopWatch = watch(messages, () => {
     const messagesDiv = document.getElementById("ua-messages")
     if (messagesDiv) {
       messagesDiv.scrollTop = messagesDiv.scrollHeight
@@ -13,6 +13,9 @@ watch(messages, () => {
   {flush: 'post'}
 )
 
+onUnmounted(() => {
+  stopWatch() // Clean up the watcher when component is unmounted
+})
 
 function formatDate(date: Date) {
   return date.toLocaleDateString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: undefined })

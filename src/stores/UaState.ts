@@ -34,6 +34,21 @@ export type UaStateType = {
   messages: LogEntryType[]
 }
 
+export type Credentials = {
+  TokenPolicy: OPCUA.UserTokenPolicy
+  Identity: string | File | undefined
+  Secret: string | undefined
+}
+
+export type ConnectionParams = {
+  EndpointUrl: string
+  TransportProfileUri: string
+  SecurityPolicyUri: string
+  SecurityMode: number
+  ServerCertificate: Uint8Array | null
+  Token: Credentials
+}
+
 function opcuaWebSockURL(): string {
   // when we a in defelopment mode then
   // web page is running inside vite dev server
@@ -71,9 +86,8 @@ export const uaApplication = defineStore('uaApplication', () => {
 
   const messages = computed(() => messagesLog.value.reverse())
 
-  function onMessage(type: LogMessageType, e: any) {
-    let msg = e
-    if (e.Error && e.Error.message) msg = e.Error.message
+  function onMessage(type: LogMessageType, e: Error | string) {
+    const msg = e instanceof Error ? e.message : e
 
     messagesLog.value.push({
       time: new Date(),
@@ -84,7 +98,7 @@ export const uaApplication = defineStore('uaApplication', () => {
 
   const connected = computed(() => server.value != undefined)
 
-  async function connect(endpoint: any) {
+  async function connect(endpoint: ConnectionParams) {
     try {
       const srv = createUaClient(endpoint.EndpointUrl, uaApplication().opcuaWebSockURL())
 
@@ -102,9 +116,9 @@ export const uaApplication = defineStore('uaApplication', () => {
       onMessage(LogMessageType.Info, 'Creating session')
       await srv.createSession('opcua web session', 3600000)
 
-      onMessage(LogMessageType.Info, 'Logging to OPCUA server:' + endpoint.Token.Identity + ' with policy ' + endpoint.Token.TokenType.PolicyId)
+      onMessage(LogMessageType.Info, 'Logging to OPCUA server:' + endpoint.Token.Identity + ' with policy ' + endpoint.Token.TokenPolicy.PolicyId)
       await srv.activateSession(
-        endpoint.Token.TokenType,
+        endpoint.Token.TokenPolicy,
         endpoint.Token.Identity,
         endpoint.Token.Secret
       )
@@ -112,8 +126,8 @@ export const uaApplication = defineStore('uaApplication', () => {
       onMessage(LogMessageType.Info, 'Connected to OPCUA server')
       server.value = srv
       root.value.nodes = []
-    } catch (e: any) {
-      onMessage(LogMessageType.Error, e)
+    } catch (e: unknown) {
+      onMessage(LogMessageType.Error, e instanceof Error ? e.message : String(e))
     }
   }
 
@@ -129,21 +143,21 @@ export const uaApplication = defineStore('uaApplication', () => {
       }
 
       onMessage(LogMessageType.Info, 'Browsing nodeID ' + node.nodeid)
-      const resp: any = await server.value.browse(node.nodeid.toString())
-      resp.Results.forEach((result: any) => {
+      const resp: OPCUA.BrowseData = await server.value.browse(node.nodeid.toString())
+      resp.Results.forEach((result: OPCUA.BrowseResult) => {
           if (!Array.isArray(result.References))
             return
 
-          result.References.forEach((ref: any) => {
+          result.References.forEach((ref: OPCUA.ReferenceDescription) => {
             node.nodes.push({
               nodeid: ref.NodeId,
-              label: ref.BrowseName.Name,
+              label: ref.BrowseName.Name ?? '',
               nodes: []
             })
         })
       })
-    } catch (e) {
-      onMessage(LogMessageType.Error, e)
+    } catch (e: unknown) {
+      onMessage(LogMessageType.Error, e instanceof Error ? e.message : String(e))
     }
   }
 
@@ -154,20 +168,22 @@ export const uaApplication = defineStore('uaApplication', () => {
       }
 
       onMessage(LogMessageType.Info, 'Reading attributes ' + nodeId)
-      const resp: any = await server.value.read(nodeId)
-      const attributes = resp.Results.filter((r: any, index: number) => {
-        if (r.StatusCode == null || r.StatusCode == 0 || !("StatusCode" in r)) {
-          r.AttributeId = index
-          r.Name = OPCUA.getAttributeName(index)
-          return true
-        }
+      const resp: OPCUA.ReadData = await server.value.read(nodeId)
+      const attributes: AttributeValueType[] = []
+      resp.Results.forEach((r: OPCUA.DataValue, index: number) => {
+        if (r.StatusCode && r.StatusCode.Code !== 0)
+          return
 
-        return false
+        attributes.push({
+          name: OPCUA.getAttributeName(index),
+          attributeId: index,
+          value: r
+        })
       })
 
       return attributes
-    } catch (e) {
-      onMessage(LogMessageType.Error, e)
+    } catch (e: unknown) {
+      onMessage(LogMessageType.Error, e instanceof Error ? e.message : String(e))
     }
   }
 

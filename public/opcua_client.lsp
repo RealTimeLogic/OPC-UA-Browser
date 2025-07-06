@@ -20,11 +20,11 @@ local function isSupportedTokenType(userTokenPolicy)
    local policyUri = userTokenPolicy.SecurityPolicyUri
    traceD(fmt("Check for token policy support: type='%s', policyUri='%s'", type, policyUri))
    local supported = false
-   if type == ua.Types.UserTokenType.Anonymous then
+   if type == ua.UserTokenType.Anonymous then
       supported = true
-   elseif type == ua.Types.UserTokenType.Certificate then
+   elseif type == ua.UserTokenType.Certificate then
       supported = policyUri == nil or isSupportedPolicy(policyUri)
-   elseif type == ua.Types.UserTokenType.UserName then
+   elseif type == ua.UserTokenType.UserName then
       supported = policyUri == nil or isSupportedPolicy(policyUri)
    end
 
@@ -90,8 +90,8 @@ local function opcUaClient(wsSock)
             elseif request.OpenSecureChannel then
               traceI("Opening secureChannel")
               local timeoutMs = request.OpenSecureChannel.TimeoutMs or 3600000
-              local securityPolicyUri = request.OpenSecureChannel.SecurityPolicyUri or ua.Types.SecurityPolicy.None
-              local securityMode = request.OpenSecureChannel.SecurityMode or ua.Types.MessageSecurityMode.None
+              local securityPolicyUri = request.OpenSecureChannel.SecurityPolicyUri or ua.SecurityPolicy.None
+              local securityMode = request.OpenSecureChannel.SecurityMode or ua.MessageSecurityMode.None
               local serverCertificate = request.OpenSecureChannel.ServerCertificate
               if serverCertificate == ba.json.null then
                serverCertificate = nil

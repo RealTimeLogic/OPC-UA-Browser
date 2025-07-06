@@ -3,6 +3,7 @@ import { uaApplication } from '../stores/UaState'
 import * as OPCUA from 'opcua-client'
 
 import { createPinia } from 'pinia'
+import { UserTokenType } from 'opcua-client'
 
 const pinia = createPinia()
 
@@ -21,10 +22,21 @@ describe('<AuthForm/>', () => {
 
   it('Root node appear connect', () => {
     uaApplication(pinia).connect({
-      endpointUrl: 'opc.tcp://localhost:4841',
-      securityPolicyUri: OPCUA.SecurePolicyUri.None,
-      token: {
-        policyId: 'anonymous'
+      EndpointUrl: 'opc.tcp://localhost:4841',
+      TransportProfileUri: OPCUA.TransportProfile.TcpBinary,
+      SecurityPolicyUri: OPCUA.SecurePolicyUri.None,
+      SecurityMode: OPCUA.MessageSecurityMode.None,
+      ServerCertificate: null,
+      Token: {
+        TokenPolicy: {
+          PolicyId: 'anonymous',
+          TokenType: UserTokenType.Anonymous,
+          IssuedTokenType: undefined,
+          IssuerEndpointUrl: undefined,
+          SecurityPolicyUri: undefined
+        },
+        Identity: undefined,
+        Secret: undefined
       }
     })
 
@@ -37,10 +49,21 @@ describe('<AuthForm/>', () => {
 
   it('Browse RootFolder', () => {
     uaApplication(pinia).connect({
-      endpointUrl: 'opc.tcp://localhost:4841',
-      securityPolicyUri: OPCUA.SecurePolicyUri.None,
-      token: {
-        policyId: 'anonymous'
+      EndpointUrl: 'opc.tcp://localhost:4841',
+      TransportProfileUri: OPCUA.TransportProfile.TcpBinary,
+      SecurityPolicyUri: OPCUA.SecurePolicyUri.None,
+      SecurityMode: OPCUA.MessageSecurityMode.None,
+      ServerCertificate: null,
+      Token: {
+        TokenPolicy: {
+          PolicyId: 'anonymous',
+          TokenType: UserTokenType.Anonymous,
+          IssuedTokenType: undefined,
+          IssuerEndpointUrl: undefined,
+          SecurityPolicyUri: undefined
+        },
+        Identity: undefined,
+        Secret: undefined
       }
     })
 

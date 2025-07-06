@@ -1,7 +1,9 @@
+mako.createloader(io)
+
 tracep(false, 5, "Initializing OPCUA")
 
 local ua = require("opcua.api")
-ua.assertVersion("0.10.0")
+ua.assertVersion("0.11.0")
 local init = require("opcua.init")
 local checkConfig = require("opcua.config")
 local socket = require("socket")
@@ -10,18 +12,17 @@ local fmt = string.format
 -- Connect logging traces
 -- Logging level is controlled by config file.
 ua.trace.dbg = function(msg)
-  trace(msg)
+  tracep(false, 0, msg)
 end
 
 ua.trace.inf = function(msg)
-  trace(msg)
+  tracep(false, 0, msg)
 end
 
 ua.trace.err = function(msg)
-  trace(msg)
+  tracep(false, 0, msg)
 end
 
-local traceD = ua.trace.dbg
 local traceI = ua.trace.inf
 local traceE = ua.trace.err
 
@@ -132,3 +133,9 @@ checkConfig.client(clientConfig)
 _G.clientConfig = clientConfig
 
 traceI("OPCUA browser ready")
+
+suc, runServer = pcall(require, "demo_server")
+if suc then
+  traceI("Starting demo server")
+  ba.socket.event(runServer)
+end

@@ -54,7 +54,7 @@ onMounted(() => {
       //   serverTime.value = date.toDateString() + " " + date.toLocaleTimeString()
       // }
     }
-    catch (e: any) {
+    catch (e) {
       console.error(e);
     }
 

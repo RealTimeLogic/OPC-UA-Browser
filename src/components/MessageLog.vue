@@ -26,16 +26,18 @@ function cleaMessages() {
 <template>
   <div class="ua-messages">
     <div class="ua-messages-top">
-      <button type="button" class="btn btn-secondary btn-sm"
+      <button
+type="button" class="btn btn-secondary btn-sm"
         style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;"
-        v-on:click.prevent="cleaMessages">
+        @click.prevent="cleaMessages">
           Clear messages
       </button>
     </div>
     <div id="ua-messages" class="ua-messages-content">
-        <div class="ua-messages-div"
-          :class="{'ua-messages-div-err' : msg.type == LogMessageType.Error}"
-          v-for="(msg, index) in messages" v-bind:key="index">
+        <div
+v-for="(msg, index) in messages"
+          :key="index"
+          class="ua-messages-div" :class="{'ua-messages-div-err' : msg.type == LogMessageType.Error}">
           <div class="ua-messaes-type" >
             <img v-if="msg.type == LogMessageType.Info" class="ua-message-icon" src="../assets/icon-info.svg" alt="Info"/>
             <img v-if="msg.type == LogMessageType.Error" class="ua-message-icon" src="../assets/icon-warning.svg" alt="Warning"/>

@@ -4,10 +4,10 @@ import * as OPCUA from 'opcua-client'
 import { createUaClient }  from "../utils/ua_client_proxy"
 import { Modal } from 'bootstrap';
 
-import { uaApplication, LogMessageType} from '../stores/UaState'
+import { uaApplication, LogMessageType, ConnectionParams} from '../stores/UaState'
 
 export interface AuthProps {
-  id: string
+  id?: string
 }
 
 const props = withDefaults(defineProps<AuthProps>(), {
@@ -15,15 +15,22 @@ const props = withDefaults(defineProps<AuthProps>(), {
 })
 
 
-const hostname = window.location.hostname || 'localhost';
-let endpointUrl = ref(`opc.tcp://${hostname}:4841`)
-let endpoints: any = ref([])
-let userName: Ref<string> = ref('')
-let password: Ref<string> = ref('')
+export type EndpointSelection = OPCUA.EndpointDescription & {
+  PolicyName: string
+  ModeName: string
+  Transport: string
+}
 
-var selectedEndpointIdx: Ref<number | undefined> = ref(undefined)
-var selectedTokenIdx: Ref<number | undefined> = ref(undefined)
-let certificateFile: Ref<File | undefined> = ref(undefined)
+
+const hostname = window.location.hostname || 'localhost';
+const endpointUrl = ref(`opc.tcp://${hostname}:4841`)
+const endpoints: Ref<EndpointSelection[]> = ref([])
+const userName: Ref<string> = ref('')
+const password: Ref<string> = ref('')
+
+const selectedEndpointIdx: Ref<number | undefined> = ref(undefined)
+const selectedTokenIdx: Ref<number | undefined> = ref(undefined)
+const certificateFile: Ref<File | undefined> = ref(undefined)
 
 const modal: Ref<HTMLDivElement> | Ref<null> = ref(null)
 const connectButton: Ref<HTMLButtonElement> | Ref<null> = ref(null)
@@ -35,31 +42,35 @@ async function fillSecurePolicies(endpointUrl: string, newRequest: boolean = fal
   window.localStorage.setItem('localEndpointUrl', endpointUrl);
   try {
     endpoints.value = []
-    let server = createUaClient(endpointUrl, uaApplication().opcuaWebSockURL())
+    const server = createUaClient(endpointUrl, uaApplication().opcuaWebSockURL())
 
     await server.hello(endpointUrl)
     await server.openSecureChannel(10000, OPCUA.SecurePolicyUri.None, OPCUA.MessageSecurityMode.None)
 
-    const getEndpointsResp: any = await server.getEndpoints()
+    const getEndpointsResp: OPCUA.GetEndpointsData = await server.getEndpoints()
 
     try {
       await server.closeSecureChannel()
-    } catch (err) {
-      uaApplication().onMessage(LogMessageType.Error, err)
+    } catch (err: unknown) {
+      uaApplication().onMessage(LogMessageType.Error, err instanceof Error ? err.message : String(err))
     }
 
-    for (let endpoint of getEndpointsResp.Endpoints) {
+    for (const endpoint of getEndpointsResp.Endpoints) {
+
       const policyName = OPCUA.getPolicyName(endpoint.SecurityPolicyUri)
       const modeName = OPCUA.getMessageModeName(endpoint.SecurityMode)
-      endpoint.SecurityPolicyId = policyName + modeName
-      endpoint.EncryptionName = policyName
-      endpoint.ModeName = modeName
-      endpoint.Transport = OPCUA.getTransportName(endpoint.TransportProfileUri)
-    }
 
-    endpoints.value = getEndpointsResp.Endpoints
-  } catch (err) {
-    uaApplication().onMessage(LogMessageType.Error, err)
+      const endpointExtended: EndpointSelection = {
+        ...endpoint,
+        PolicyName: policyName,
+        ModeName: modeName,
+        Transport: OPCUA.getTransportName(endpoint.TransportProfileUri as OPCUA.TransportProfile)
+      }
+
+      endpoints.value.push(endpointExtended)
+    }
+  } catch (err: unknown) {
+    uaApplication().onMessage(LogMessageType.Error, err instanceof Error ? err.message : String(err))
   }
 }
 
@@ -84,14 +95,14 @@ async function connectEndpoint(): Promise<boolean> {
     }
   }
 
-  const endpointParams = {
+  const endpointParams: ConnectionParams = {
     EndpointUrl: endpoint.EndpointUrl,
     TransportProfileUri: endpoint.TransportProfileUri,
     SecurityPolicyUri: endpoint.SecurityPolicyUri,
     SecurityMode: endpoint.SecurityMode,
     ServerCertificate: endpoint.ServerCertificate,
     Token: {
-      TokenType: tokenType,
+      TokenPolicy: tokenType,
       Identity: identity,
       Secret: secret
     }
@@ -164,15 +175,15 @@ onMounted( async () => {
   const localUser = window.localStorage.getItem('localUser') || false
   const localPass = window.localStorage.getItem('localPass') || false
   const localEndpointUrl = window.localStorage.getItem('localEndpointUrl') || false
-  const localeidx = window.localStorage.getItem('localeidx') || false
-  const localetidx = window.localStorage.getItem('localetidx') || false
+  const localeidx = parseInt(window.localStorage.getItem('localeidx') || '0')
+  const localetidx = parseInt(window.localStorage.getItem('localetidx') || '0')
 
   if (localUser && localPass && localEndpointUrl && localeidx && localetidx) {
     await fillSecurePolicies(endpointUrl.value);
 
     // Try check if idx and tidx exists in endpoits url
     if (endpoints.value[localeidx]?.UserIdentityTokens[localetidx]) {
-      selectToken(parseInt(localeidx), parseInt(localetidx));
+      selectToken(localeidx, localetidx);
       userName.value = localUser;
       password.value = localPass;
       const response = await connectEndpoint();
@@ -245,11 +256,11 @@ function truncate(str: string) {
               </button>
             </div>
 
-            <div class="accordion accordion-flush" id="accordionFlush">
+            <div id="accordionFlush" class="accordion accordion-flush">
               <div
-                class="accordion-item flex-column endpoint-params"
                 v-for="(endpoint, eidx) in endpoints"
-                :key="endpoint.policyName"
+                :key="endpoint.PolicyName"
+                class="accordion-item flex-column endpoint-params"
               >
                 <h2 class="accordion-header">
                   <button
@@ -262,7 +273,7 @@ function truncate(str: string) {
                     :aria-controls="'flush-collapse-' + eidx"
                   >
                     <div>
-                      <h5>{{ endpoint.Transport }} - {{ endpoint.ModeName }} - {{ endpoint.EncryptionName }}</h5>
+                      <h5>{{ endpoint.Transport }} - {{ endpoint.ModeName }} - {{ endpoint.PolicyName }}</h5>
                       <h6 :title="endpoint.EndpointUrl">{{ truncate(endpoint.EndpointUrl) }}</h6>
                     </div>
                   </button>
@@ -276,20 +287,20 @@ function truncate(str: string) {
                 >
                   <div class="accordion-body">
                     <div
-                      :id="'tokens-' + eidx"
-                      class="flex-column"
                       v-for="(token, tidx) in endpoint.UserIdentityTokens"
+                      :id="'tokens-' + eidx"
                       :key="token.PolicyId"
+                      class="flex-column"
                     >
                       <div
-                        class="form-check"
                         v-if="token.TokenType == OPCUA.UserTokenType.Anonymous"
+                        class="form-check"
                       >
                         <input
+                          :id="'e' + eidx + '-t' + tidx"
                           class="form-check-input"
                           type="radio"
                           :name="'tokentype-e' + eidx"
-                          :id="'e' + eidx + '-t' + tidx"
                           :checked="eidx == selectedEndpointIdx && tidx == selectedTokenIdx"
                           @change="selectToken(eidx, tidx)"
                         />
@@ -299,14 +310,14 @@ function truncate(str: string) {
                       </div>
 
                       <div
-                        class="form-check"
                         v-if="token.TokenType == OPCUA.UserTokenType.UserName"
+                        class="form-check"
                       >
                         <input
+                          :id="'e' + eidx + '-t' + tidx"
                           class="form-check-input"
                           type="radio"
                           :name="'tokentype-e' + eidx"
-                          :id="'e' + eidx + '-t' + tidx"
                           :checked="eidx == selectedEndpointIdx && tidx == selectedTokenIdx"
                           @change="selectToken(eidx, tidx)"
                         />
@@ -314,38 +325,38 @@ function truncate(str: string) {
                           >Username</label
                         >
                         <div
-                          class="input-group mb-3"
                           v-if="token.TokenType == OPCUA.UserTokenType.UserName"
+                          class="input-group mb-3"
                         >
                           <input
+                            v-model="userName"
                             type="text"
                             class="form-control"
                             placeholder="Username"
                             aria-label="Username"
-                            v-model="userName"
                             @keyup.enter="connectEndpoint"
                           />
                           <span class="input-group-text">@</span>
                           <input
+                            v-model="password"
                             type="password"
                             class="form-control"
                             placeholder="Password"
                             aria-label="Server"
-                            v-model="password"
                             @keyup.enter="connectEndpoint"
                           />
                         </div>
                       </div>
 
                       <div
-                        class="form-check"
                         v-if="token.TokenType == OPCUA.UserTokenType.Certificate"
+                        class="form-check"
                       >
                         <input
+                          :id="'e' + eidx + '-t' + tidx"
                           class="form-check-input"
                           type="radio"
                           :name="'tokentype-e' + eidx"
-                          :id="'e' + eidx + '-t' + tidx"
                           :checked="eidx == selectedEndpointIdx && tidx == selectedTokenIdx"
                           @change="selectToken(eidx, tidx)"
                         />
@@ -355,10 +366,10 @@ function truncate(str: string) {
                               >User certificate file</label
                             >
                             <input
+                              id="certificateFile"
                               :name="'e' + eidx + '-t' + tidx"
                               class="form-control"
                               type="file"
-                              id="certificateFile"
                               :onchange="onSelectedCert"
                             />
                           </div>
@@ -374,10 +385,10 @@ function truncate(str: string) {
 
         <div class="modal-footer">
           <button
+            ref="connectButton"
             type="button"
             class="btn btn-primary login-button"
             data-bs-dismiss="modal"
-            ref="connectButton"
             :disabled="!selected"
             @click="connectEndpoint"
           >

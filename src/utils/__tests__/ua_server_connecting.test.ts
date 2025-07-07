@@ -140,13 +140,14 @@ describe('GetEndpoints', async () => {
       OPCUA.SecurePolicyUri.None,
       OPCUA.MessageSecurityMode.None
     )
-    const resp: any = await server.getEndpoints()
+    const resp: OPCUA.GetEndpointsData = await server.getEndpoints()
     await server.closeSecureChannel()
     await server.disconnect()
 
     for (let i = 0; i < resp.Endpoints.length; i++) {
-      const endpoint: any = resp.Endpoints[i]
-      if (endpoint.SecurityPolicyUri == OPCUA.SecurePolicyUri.None) continue
+      const endpoint: OPCUA.EndpointDescription = resp.Endpoints[i]
+      if (endpoint.SecurityPolicyUri == OPCUA.SecurePolicyUri.None)
+        continue
 
       it(
         'Can connect to: ' + endpoint.SecurityPolicyUri + ' mode ' + endpoint.SecurityMode,
@@ -200,7 +201,7 @@ describe('Session', async () => {
 
 describe('Authentication', async () => {
   let server: UaServer
-  let basic128Rsa15Edpoint: any
+  let basic128Rsa15Edpoint: OPCUA.EndpointDescription | undefined
 
 beforeEach(async () => {
     server = new UaServer(WebSockURL)
@@ -211,7 +212,7 @@ beforeEach(async () => {
       OPCUA.SecurePolicyUri.None,
       OPCUA.MessageSecurityMode.None
     )
-    const session: any = await server.createSession('test_js_session', 3600000)
+    const session: OPCUA.CreateSessionData = await server.createSession('test_js_session', 3600000)
     for (const endpoint of session.ServerEndpoints) {
       if (endpoint.SecurityPolicyUri !== OPCUA.SecurePolicyUri.None) {
         basic128Rsa15Edpoint = endpoint
@@ -227,11 +228,19 @@ beforeEach(async () => {
   })
 
   it('Anonymous', async () => {
-    let anonymousPolicy: any = null
+    if (!basic128Rsa15Edpoint) {
+      throw new Error('No basic128Rsa15Edpoint found')
+    }
+
+    let anonymousPolicy: OPCUA.UserTokenPolicy | undefined
     for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
       if (tokenPolicy.TokenType == OPCUA.UserTokenType.Anonymous) {
         anonymousPolicy = tokenPolicy
       }
+    }
+
+    if (!anonymousPolicy) {
+      throw new Error('No anonymous policy found')
     }
 
     expect(anonymousPolicy).not.toEqual(null)
@@ -240,7 +249,11 @@ beforeEach(async () => {
   })
 
   it('Username', async () => {
-    let usernamePolicy: any
+    if (!basic128Rsa15Edpoint) {
+      throw new Error('No basic128Rsa15Edpoint found')
+    }
+
+    let usernamePolicy: OPCUA.UserTokenPolicy | undefined
     for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
       if (tokenPolicy.TokenType == OPCUA.UserTokenType.UserName) {
         usernamePolicy = tokenPolicy
@@ -248,13 +261,20 @@ beforeEach(async () => {
       }
     }
 
-    expect(usernamePolicy).not.toEqual(undefined)
+    if (!usernamePolicy) {
+      throw new Error('No username policy found')
+    }
+
     const session = await server.activateSession(usernamePolicy, 'admin', '12345')
     expect(session).to.toBeDefined()
   })
 
   it('Username Invalid', async () => {
-    let usernamePolicy: any = null
+    if (!basic128Rsa15Edpoint) {
+      throw new Error('No basic128Rsa15Edpoint found')
+    }
+
+    let usernamePolicy: OPCUA.UserTokenPolicy | undefined
     for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
       if (tokenPolicy.TokenType == OPCUA.UserTokenType.UserName) {
         usernamePolicy = tokenPolicy
@@ -262,7 +282,10 @@ beforeEach(async () => {
       }
     }
 
-    expect(usernamePolicy).not.toEqual(null)
+    if (!usernamePolicy) {
+      throw new Error('No username policy found')
+    }
+
     try {
       await server.activateSession(usernamePolicy, 'admin', 'hahaha')
       expect(true).to.toEqual(false)
@@ -272,7 +295,11 @@ beforeEach(async () => {
   })
 
   it('Username password null', async () => {
-    let usernamePolicy: any = null
+    if (!basic128Rsa15Edpoint) {
+      throw new Error('No basic128Rsa15Edpoint found')
+    }
+
+    let usernamePolicy: OPCUA.UserTokenPolicy | undefined
     for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
       if (tokenPolicy.TokenType == OPCUA.UserTokenType.UserName) {
         usernamePolicy = tokenPolicy
@@ -280,7 +307,10 @@ beforeEach(async () => {
       }
     }
 
-    expect(usernamePolicy).not.toEqual(null)
+    if (!usernamePolicy) {
+      throw new Error('No username policy found')
+    }
+
     try {
       await server.activateSession(usernamePolicy, 'admin')
       expect(true).to.toEqual(false)
@@ -290,7 +320,10 @@ beforeEach(async () => {
   })
 
   it('Certificate', async () => {
-    let certificatePolicy: any = null
+    if (!basic128Rsa15Edpoint) {
+      throw new Error('No basic128Rsa15Edpoint found')
+    }
+    let certificatePolicy: OPCUA.UserTokenPolicy | undefined
     for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
       if (tokenPolicy.TokenType == OPCUA.UserTokenType.Certificate) {
         certificatePolicy = tokenPolicy
@@ -298,7 +331,9 @@ beforeEach(async () => {
       }
     }
 
-    expect(certificatePolicy).not.toEqual('')
+    if (!certificatePolicy) {
+      throw new Error('No certificate policy found')
+    }
 
     // Certificate and private key of user 'admin'
     const userCert = `

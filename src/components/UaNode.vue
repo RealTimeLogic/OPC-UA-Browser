@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { uaApplication } from '../stores/UaState'
-import { inject } from 'vue'
+import { inject, Ref } from 'vue'
 
 const props = defineProps(['root'])
 
@@ -8,23 +8,27 @@ function browse() {
   uaApplication().browse(props.root)
 }
 
-const selectNode: any = inject('selectNode')
+const selectNode: Ref<(nodeId: string) => void> | undefined = inject('selectNode')
+if (!selectNode) {
+  throw new Error('selectNode is not defined')
+}
+
 </script>
 
 <template>
   <div :ua-nodeid="root.nodeid" class="flex-column ua-node">
     <div class="node-row flex-row">
-      <div class="node-plus" v-on:click.prevent="browse">
+      <div class="node-plus" @click.prevent="browse">
         {{ root.nodes.length == 0 ? '+' : '-' }}
       </div>
-      <div class="node-name" v-on:click.prevent="selectNode(root.nodeid)">{{ root.label }}</div>
+      <div class="node-name" @click.prevent="selectNode(root.nodeid)">{{ root.label }}</div>
     </div>
-    <UaNode class="node-children" v-for="(node, index) in root.nodes" :key="index" :root="node" />
+    <UaNode v-for="(node, index) in root.nodes" :key="index" class="node-children" :root="node" />
   </div>
 </template>
 
 <style lang="scss">
-  
+
   .node-children {
     position: relative;
     z-index: 1;

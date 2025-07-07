@@ -18,8 +18,8 @@ describe('Services', async () => {
       OPCUA.SecurePolicyUri.None,
       OPCUA.MessageSecurityMode.None
     )
-    const session: any = await server.createSession('test_js_session', 3600000)
-    let basic128Rsa15Edpoint: any
+    const session = await server.createSession('test_js_session', 3600000)
+    let basic128Rsa15Edpoint: OPCUA.EndpointDescription | undefined
     for (const endpoint of session.ServerEndpoints) {
       if (endpoint.SecurityPolicyUri !== OPCUA.SecurePolicyUri.None) {
         basic128Rsa15Edpoint = endpoint
@@ -27,14 +27,21 @@ describe('Services', async () => {
       }
     }
 
-    let anonymousPolicy: any
+    if (!basic128Rsa15Edpoint) {
+      throw new Error('No basic128Rsa15Edpoint found')
+    }
+
+    let anonymousPolicy: OPCUA.UserTokenPolicy | undefined
     for (const tokenPolicy of basic128Rsa15Edpoint.UserIdentityTokens) {
       if (tokenPolicy.TokenType == OPCUA.UserTokenType.Anonymous) {
-        anonymousPolicy = tokenPolicy.PolicyId
+        anonymousPolicy = tokenPolicy
       }
     }
 
-    expect(anonymousPolicy).not.toEqual(null)
+    if (!anonymousPolicy) {
+      throw new Error('No anonymous policy found')
+    }
+
     const activateResult = await server.activateSession(anonymousPolicy)
     expect(activateResult).to.toBeDefined()
   })

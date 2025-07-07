@@ -1,10 +1,10 @@
-import { UaClient, TransportProfile } from "opcua-client"
+import { UaClient, TransportProfile, CreateSessionData, ActivateSessionData, FindServersData, GetEndpointsData, ReadData, BrowseData, UserTokenPolicy } from "opcua-client"
 
 type Request = {
-  reject(error: any): void
-  resolve(msg: any): void
+  reject(error: unknown): void
+  resolve(msg: unknown): void
   id: number
-  timeout: any
+  timeout: NodeJS.Timeout
 }
 
 export class RtlProxyClient implements UaClient {
@@ -12,14 +12,14 @@ export class RtlProxyClient implements UaClient {
   private RequestCounter: number = 0
   private WebSock: WebSocket | null = null
   private readonly SiteURL: string
-  private readonly disconnectCallback?: any
+  private readonly disconnectCallback?: (e: Error) => void
 
-  constructor(siteURL: string, disconnectCallback?: any) {
+  constructor(siteURL: string, disconnectCallback?: (e: Error) => void) {
     this.SiteURL = siteURL
     this.disconnectCallback = disconnectCallback
   }
 
-  private _reset(e: any) {
+  private _reset(e: Error) {
     for (const request of this.Requests.entries()) {
       const val = request[1]
       val.reject(e)
@@ -47,9 +47,9 @@ export class RtlProxyClient implements UaClient {
         reject(new Error('socket disconnected'))
       }
 
-      this.WebSock.onerror = (e) => {
+      this.WebSock.onerror = (e: Event) => {
         console.error('Websocket ' + this.SiteURL + 'error: ' + e)
-        this._reset(e)
+        this._reset(new Error('socket disconnected'))
         reject(new Error('socket disconnected'))
       }
 
@@ -66,7 +66,7 @@ export class RtlProxyClient implements UaClient {
             request.resolve(resp.Data)
           }
         } catch(e) {
-          throw new Error('Invalid JSON response: ' + msg.data)
+          throw new Error('Invalid JSON response: ' + e + ' ' + msg.data)
         }
       }
     })
@@ -89,7 +89,7 @@ export class RtlProxyClient implements UaClient {
     return this.RequestCounter
   }
 
-  private async sendRequest(request: any) {
+  private async sendRequest(r: unknown) {
     return new Promise((resolve, reject) => {
       if (this.WebSock == null) {
         reject(new Error('No connection to web socket server.'))
@@ -105,8 +105,8 @@ export class RtlProxyClient implements UaClient {
           reject('timeout')
         }, 30000)
       }
-
       this.Requests.set(requestId, requestData)
+      const request = r as Request
       request.id = requestId
 
       const msg = JSON.stringify(request)
@@ -122,7 +122,7 @@ export class RtlProxyClient implements UaClient {
     return this.disconnectWebSocket()
   }
 
-  public async hello(endpointUrl: string, transportProfileUri: string | null = null) {
+  public async hello(endpointUrl: string, transportProfileUri: string | null = null): Promise<void> {
     if (this.WebSock == null)
       await this.connectWebSocket()
 
@@ -149,15 +149,11 @@ export class RtlProxyClient implements UaClient {
       }
     }
 
-    return this.sendRequest(request)
+    return this.sendRequest(request) as Promise<void>
   }
 
-  public async openSecureChannel(
-    timeoutMs: number,
-    securityPolicyUri: string,
-    securityMode: number,
-    serverCertificate: string | null = null
-  ) {
+  public async openSecureChannel (timeoutMs: number, securityPolicyUri: string, securityMode: number, serverCertificate?: string | Uint8Array | File | null): Promise<void>
+  {
     const request = {
       OpenSecureChannel: {
         TimeoutMs: timeoutMs,
@@ -166,28 +162,28 @@ export class RtlProxyClient implements UaClient {
         ServerCertificate: serverCertificate
       }
     }
-    return this.sendRequest(request)
+    return this.sendRequest(request) as Promise<void>
   }
 
-  async closeSecureChannel() {
+  public async closeSecureChannel(): Promise<void> {
     const request = {
       CloseSecureChannel: {}
     }
 
-    return this.sendRequest(request)
+    return this.sendRequest(request) as Promise<void>
   }
 
-  async createSession(sessionName: string, timeoutMs: number) {
+  public async createSession(sessionName: string, timeoutMs: number): Promise<CreateSessionData> {
     const request = {
       CreateSession: {
         SessionName: sessionName,
         SessionTimeout: timeoutMs
       }
     }
-    return this.sendRequest(request)
+    return this.sendRequest(request) as Promise<CreateSessionData>
   }
 
-  async activateSession(tokenPolicy: any, identity?: string, secret?: string) {
+  public async activateSession(tokenPolicy: UserTokenPolicy, identity?: string, secret?: string): Promise<ActivateSessionData> {
     const request = {
       ActivateSession: {
         TokenType: tokenPolicy.TokenType,
@@ -197,17 +193,17 @@ export class RtlProxyClient implements UaClient {
       }
     }
 
-    return this.sendRequest(request)
+    return this.sendRequest(request) as Promise<ActivateSessionData>
   }
 
-  async closeSession() {
+  public async closeSession(): Promise<void> {
     const request = {
       CloseSession: {}
     }
-    return this.sendRequest(request)
+    return this.sendRequest(request) as Promise<void>
   }
 
-  async findServers(endpointUrl?: string, serverUris?: string[])  {
+  public async findServers(endpointUrl?: string, serverUris?: string[]): Promise<FindServersData> {
 
     const request = {
       FindServers: {
@@ -216,35 +212,35 @@ export class RtlProxyClient implements UaClient {
       }
     }
 
-    return this.sendRequest(request)
+    return this.sendRequest(request) as Promise<FindServersData>
   }
 
-  async getEndpoints(endpointUrl?: string) {
+  public async getEndpoints(endpointUrl?: string): Promise<GetEndpointsData> {
     const request = {
       GetEndpoints: {
         EndpointUrl: endpointUrl
       }
     }
 
-    return this.sendRequest(request)
+    return this.sendRequest(request) as Promise<GetEndpointsData>
   }
 
-  async browse(nodeId: string): Promise<any> {
+  public async browse(nodeId: string): Promise<BrowseData> {
     const request = {
       Browse: {
         NodeId: nodeId.toString()
       }
     }
-    return this.sendRequest(request)
+    return this.sendRequest(request) as Promise<BrowseData>
   }
 
-  async read(nodeId: string | string[]) {
+  public async read(nodeId: string | string[]): Promise<ReadData> {
     const request = {
       Read: {
         NodeId: nodeId.toString()
       }
     }
-    return this.sendRequest(request)
+    return this.sendRequest(request) as Promise<ReadData>
   }
 }
 
